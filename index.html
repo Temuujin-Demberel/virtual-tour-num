@@ -9,8 +9,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
   <!-- Panolens (optional, remove if you only want layout) -->
+<!-- THREE first -->
   <script src="https://pchen66.github.io/js/three/three.min.js"></script>
+
+  <!-- Add this small script BEFORE panolens -->
+  <script>
+    // Minimal polyfill so panolens doesn't crash on "process"
+    window.process = {
+      env: {
+        NODE_ENV: 'production',
+        npm_lifecycle_event: ''   // anything that's NOT "test" is fine
+      }
+    };
+  </script>
+
+  <!-- Now load Panolens -->
   <script src="https://cdn.jsdelivr.net/npm/panolens@0.12.1/build/panolens.min.js"></script>
+
 
   <style>
     :root {
@@ -508,7 +523,7 @@
     });
 
     const scenes = {
-      main: new PANOLENS.ImagePanorama('assets/main.jpg'),
+      main: new PANOLENS.ImagePanorama('./assets/main.jpg'),
       library: new PANOLENS.ImagePanorama('assets/library.jpg'),
       lab: new PANOLENS.ImagePanorama('assets/lab.jpg'),
       lecture: new PANOLENS.ImagePanorama('assets/lecture.jpg')
