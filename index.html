@@ -56,27 +56,6 @@
 
     h2{color:var(--hdr-col); margin:0px; font-family: 'raleway'; font-size: 20px; font-weight: 600;}
 
-    .page {
-      height: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-    }
-
-    /* main 16:9 frame */
-
-    .tour-frame {
-      position: relative;
-      width: 100%;
-      max-width: 1200px;
-      aspect-ratio: 16 / 9;
-      background: #000;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: var(--shadow-ui);
-    }
-
     #viewer {
       position: absolute;
       inset: 0;
@@ -121,45 +100,38 @@
       line-height: 1;
     }
 
-    .icon-round {
-      pointer-events: auto;
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      border: 2px solid var(--border-col);
-      background: rgba(0, 0, 0, 0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
-    }
+    .panolens-setting {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 12px;
+  color: #fff;
+}
 
     /* top bar */
 
-    .ui-top {
+    #out{
       position: absolute;
-      left: 24px;
-      right: 24px;
-      top: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      top:2%;
+      left:2%;
+    }
 
-        & > .glass-top-center{
+        .glass-top-center{
+            position: absolute;
+            left: 40%;
+            top:2%;
             display: flex;
             width: 306px;
-            height: 54px;
+            height: 46px;
             background-color: var(--bg-glass);
             border-radius: 45px;
+            border: 1px solid var(--border-col);
             align-items: center;
             justify-content: center;
             
-            & > .ui-top-center {
+          .ui-top-center {
                 display: flex;
                 width: 293px;
                 height:31px;
+                gap:6px;
                 justify-content: center;
                 align-items: center;
                 pointer-events: none;
@@ -167,23 +139,68 @@
                 border-radius: 50px;
                 border: 2px solid var(--border-col);
             }
-        }
+    }
 
-        & > .glass-icon-round{
-            width: 64px;
-            height: 64px;
+    .static{
+      position: absolute;
+      top: 1%;
+      right: 1%;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+          .glass-icon-round{
+
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
+            border: 1px solid var(--border-col);
             background-color: var(--bg-glass);
-
-            & > .icon-round{
-                background-color: var(--blue);
+            & > .icon-round {
+              width: 40px;
+              height: 40px;
+              border-radius: 999px;
+              border: 2px solid var(--border-col);
+              background-color: var(--blue);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #fff;
+              pointer-events: auto;
+              cursor: pointer;
+              label{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              }
+              input{
+                display: none;
+              }
             }
         }
-    }
 
+        .glass-icon-round:hover{
+          width: 60px;
+          height: 60px;
+          background-color: var();
+        }
+
+        
+
+    .icon-round label {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: pointer;
+  }
+
+    
 
 
     .ui-top-center .chip {
@@ -257,6 +274,7 @@
           width: 233px;
           height: 51px;
           background-color: var(--bg-glass);
+          border: 1px solid var(--border-col);
           border-radius: 50px;
           justify-content: center;
           align-items: center;
@@ -265,6 +283,8 @@
             height: 39px;
             display: flex;
             justify-content: center;
+            pointer-events: auto;
+            cursor: pointer;
             border: 2px solid var(--border-col);
             align-items: center;
             border-radius: 999px;
@@ -275,13 +295,24 @@
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
             gap: 6px;
           }
+
+          & > .walk-toggle {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none; /* just to be safe */
+          }
+
+          /* optional: change style when checked */
+          & > .walk-toggle:checked + .walk {
+            background: #00b25c; /* эсвэл өөр өнгө: "идэвхтэй" харагдана */
+          }
         }
         & > .glass-map {
         width: 233px;
         height: 150px;
         background: var(--bg-glass);
         border-radius: 22px;
-        border: 2px solid var(--border-col);
+        border: 1px solid var(--border-col);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -299,11 +330,13 @@
         position: relative;
         }
     /* mini map & "Явах" */
-        & > .floor {
+        .floor {
+        position:absolute;
+        top: 85%;
+        z-index: 1;
         align-self: center;
-        margin-top: 6px;
         padding: 3px 16px;
-        border-radius: 999px;
+        border-radius: 8px;
         background: #ffffff;
         border: 2px solid var(--blue);
         font-size: 12px;
@@ -315,15 +348,24 @@
     
 
     /* big circle on the right */
-
-    .nav-circle {
-      pointer-events: auto;
-      width: 155px;
-      height: 155px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      border: 5px solid var(--blue);
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+    .glass-circle{
+      width: 170px;
+      background-color: var(--bg-glass);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      border: 1px solid var(--border-col);
+      height: 170px;
+      .nav-circle {
+        pointer-events: auto;
+        width: 155px;
+        height: 155px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        border: 5px solid var(--blue);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+      }
     }
 
     /* subtitle + CC */
@@ -343,6 +385,8 @@
 
     .cc-button-wrapper {
       position: absolute;
+      top: 93%;
+      left: 96%;
       right: 26px;
       bottom: 22px;
       pointer-events: auto;
@@ -392,12 +436,38 @@
       .card-row { gap: 12px; }
       .scene-card { width: 120px; }
     }
+
+
+body:fullscreen .tour-overlay {   
+  animation: fade 0.5s ease-out;
+}
+
+@keyframes fade{
+  50%{
+    opacity: 0;
+  }
+
+  0%, 100%{
+    opacity: 1;
+  }
+}
+
+
+
+/* 
+  body:has(.icon-round input:checked) .glass-top-center,
+  body:has(.icon-round input:checked) .exit,
+  body:has(.icon-round input:checked) .ui-bottom,
+  body:has(.icon-round input:checked) .subtitle,
+  body:has(.icon-round input:checked) .cc-button-wrapper,
+  body:has(.icon-round input:checked) .ui-center
+  {
+    display: none;
+  } */
   </style>
 </head>
 
 <body>
-  <div class="page">
-    <div class="tour-frame">
       <!-- Panolens viewer goes inside here -->
       <div id="viewer"></div>
 
@@ -405,19 +475,21 @@
       <div class="tour-overlay">
 
         <!-- TOP BAR -->
-        <div class="ui-top">
-          <a>
-            <svg width="162" height="51" viewBox="0 0 162 51" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1.5" y="1.5" width="159" height="48" rx="8.5" fill="#00A758" stroke="white" stroke-width="3"/>
-            <path d="M9.57861 22.6072C9.18808 22.9977 9.18808 23.6309 9.57861 24.0214L15.9426 30.3854C16.3331 30.7759 16.9663 30.7759 17.3568 30.3854C17.7473 29.9948 17.7473 29.3617 17.3568 28.9711L11.6999 23.3143L17.3568 17.6574C17.7473 17.2669 17.7473 16.6337 17.3568 16.2432C16.9663 15.8527 16.3331 15.8527 15.9426 16.2432L9.57861 22.6072ZM27 23.3143V22.3143L10.2857 22.3143V23.3143V24.3143L27 24.3143V23.3143Z" fill="white"/>
-            <line x1="64.7856" y1="7.28571" x2="64.7856" y2="39.3429" stroke="white"/>
-            <path d="M92.404 19.2935H85.9489V31.2857H83.2048V17.067H92.404V19.2935ZM102.111 28.317H97.8435L97.0036 31.2857H94.113L98.7712 17.067H101.261L105.832 31.2857H102.941L102.111 28.317ZM98.5173 25.983H101.467L100.011 20.7486L98.5173 25.983ZM110.051 26.0709V31.2857H107.306V17.067H112.17C112.944 17.067 113.644 17.1809 114.269 17.4088C114.894 17.6301 115.428 17.9394 115.871 18.3365C116.307 18.7401 116.642 19.2219 116.877 19.7818C117.118 20.3417 117.238 20.9634 117.238 21.647C117.238 22.2851 117.118 22.8743 116.877 23.4146C116.642 23.955 116.307 24.4205 115.871 24.8111C115.428 25.2082 114.894 25.5175 114.269 25.7388C113.644 25.9602 112.944 26.0709 112.17 26.0709H110.051ZM110.051 23.8443H112.17C112.56 23.8443 112.899 23.7857 113.185 23.6685C113.472 23.5513 113.713 23.3918 113.908 23.19C114.097 22.9882 114.237 22.7571 114.328 22.4967C114.426 22.2297 114.474 21.953 114.474 21.6666C114.474 21.3345 114.426 21.0253 114.328 20.7388C114.237 20.4524 114.097 20.2017 113.908 19.9869C113.713 19.772 113.472 19.6028 113.185 19.4791C112.899 19.3554 112.56 19.2935 112.17 19.2935H110.051V23.8443ZM126.134 28.317H121.867L121.027 31.2857H118.136L122.795 17.067H125.285L129.855 31.2857H126.965L126.134 28.317ZM122.541 25.983H125.49L124.035 20.7486L122.541 25.983ZM135.968 22.1646L138.498 17.067H141.72L137.717 24.1177L141.818 31.2857H138.615L136.008 26.1099L133.41 31.2857H130.168L134.269 24.1177L130.275 17.067H133.478L135.968 22.1646Z" fill="white"/>
-            <path d="M33.4287 10.2H55.2859V37.8857H33.4287V10.2Z" fill="white"/>
-            <path d="M40.0146 18.9427H47.9375V18.9691L51.0518 25.0823C50.7882 26.1802 50.3594 26.4195 49.2451 26.138L46.916 21.5657H44.8301L46.4902 25.9368V30.3079H57.5107C57.5371 30.3268 61.1703 32.9308 57.5107 32.931H44.041L43.3281 27.5872L39.1094 37.4915C38.0726 37.6263 37.5847 37.4116 36.9766 36.4485L41.6914 25.3802L40.3633 22.0052L38.3271 24.1878H33.4287V22.4398H36.6943L39.9834 18.9075L40.0146 18.9427ZM40.7754 12.8226C42.1279 12.8226 43.2246 13.9971 43.2246 15.4456C43.2246 16.8942 42.1279 18.0687 40.7754 18.0687C39.4231 18.0684 38.3271 16.894 38.3271 15.4456C38.3272 13.9972 39.4231 12.8228 40.7754 12.8226Z" fill="#00A758"/>
-            <path d="M54.9795 37.9355L58.9854 40.75H36.7646L33.5605 37.9355H54.9795Z" fill="white" stroke="#00A758" stroke-width="0.1"/>
-            <path d="M37.2856 37.8857H38.204H40.0407L43.7142 40.8H40.9591L37.2856 37.8857Z" fill="#00A758"/>
-            </svg>
-          </a>
+
+          <div id="out">
+            <a class="exit">
+              <svg width="162" height="51" viewBox="0 0 162 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1.5" y="1.5" width="159" height="48" rx="8.5" fill="#00A758" stroke="white" stroke-width="3"/>
+              <path d="M9.57861 22.6072C9.18808 22.9977 9.18808 23.6309 9.57861 24.0214L15.9426 30.3854C16.3331 30.7759 16.9663 30.7759 17.3568 30.3854C17.7473 29.9948 17.7473 29.3617 17.3568 28.9711L11.6999 23.3143L17.3568 17.6574C17.7473 17.2669 17.7473 16.6337 17.3568 16.2432C16.9663 15.8527 16.3331 15.8527 15.9426 16.2432L9.57861 22.6072ZM27 23.3143V22.3143L10.2857 22.3143V23.3143V24.3143L27 24.3143V23.3143Z" fill="white"/>
+              <line x1="64.7856" y1="7.28571" x2="64.7856" y2="39.3429" stroke="white"/>
+              <path d="M92.404 19.2935H85.9489V31.2857H83.2048V17.067H92.404V19.2935ZM102.111 28.317H97.8435L97.0036 31.2857H94.113L98.7712 17.067H101.261L105.832 31.2857H102.941L102.111 28.317ZM98.5173 25.983H101.467L100.011 20.7486L98.5173 25.983ZM110.051 26.0709V31.2857H107.306V17.067H112.17C112.944 17.067 113.644 17.1809 114.269 17.4088C114.894 17.6301 115.428 17.9394 115.871 18.3365C116.307 18.7401 116.642 19.2219 116.877 19.7818C117.118 20.3417 117.238 20.9634 117.238 21.647C117.238 22.2851 117.118 22.8743 116.877 23.4146C116.642 23.955 116.307 24.4205 115.871 24.8111C115.428 25.2082 114.894 25.5175 114.269 25.7388C113.644 25.9602 112.944 26.0709 112.17 26.0709H110.051ZM110.051 23.8443H112.17C112.56 23.8443 112.899 23.7857 113.185 23.6685C113.472 23.5513 113.713 23.3918 113.908 23.19C114.097 22.9882 114.237 22.7571 114.328 22.4967C114.426 22.2297 114.474 21.953 114.474 21.6666C114.474 21.3345 114.426 21.0253 114.328 20.7388C114.237 20.4524 114.097 20.2017 113.908 19.9869C113.713 19.772 113.472 19.6028 113.185 19.4791C112.899 19.3554 112.56 19.2935 112.17 19.2935H110.051V23.8443ZM126.134 28.317H121.867L121.027 31.2857H118.136L122.795 17.067H125.285L129.855 31.2857H126.965L126.134 28.317ZM122.541 25.983H125.49L124.035 20.7486L122.541 25.983ZM135.968 22.1646L138.498 17.067H141.72L137.717 24.1177L141.818 31.2857H138.615L136.008 26.1099L133.41 31.2857H130.168L134.269 24.1177L130.275 17.067H133.478L135.968 22.1646Z" fill="white"/>
+              <path d="M33.4287 10.2H55.2859V37.8857H33.4287V10.2Z" fill="white"/>
+              <path d="M40.0146 18.9427H47.9375V18.9691L51.0518 25.0823C50.7882 26.1802 50.3594 26.4195 49.2451 26.138L46.916 21.5657H44.8301L46.4902 25.9368V30.3079H57.5107C57.5371 30.3268 61.1703 32.9308 57.5107 32.931H44.041L43.3281 27.5872L39.1094 37.4915C38.0726 37.6263 37.5847 37.4116 36.9766 36.4485L41.6914 25.3802L40.3633 22.0052L38.3271 24.1878H33.4287V22.4398H36.6943L39.9834 18.9075L40.0146 18.9427ZM40.7754 12.8226C42.1279 12.8226 43.2246 13.9971 43.2246 15.4456C43.2246 16.8942 42.1279 18.0687 40.7754 18.0687C39.4231 18.0684 38.3271 16.894 38.3271 15.4456C38.3272 13.9972 39.4231 12.8228 40.7754 12.8226Z" fill="#00A758"/>
+              <path d="M54.9795 37.9355L58.9854 40.75H36.7646L33.5605 37.9355H54.9795Z" fill="white" stroke="#00A758" stroke-width="0.1"/>
+              <path d="M37.2856 37.8857H38.204H40.0407L43.7142 40.8H40.9591L37.2856 37.8857Z" fill="#00A758"/>
+              </svg>
+            </a>
+          </div>
 
           <div class="glass-top-center">
             <div class="ui-top-center">         
@@ -441,50 +513,49 @@
                 <h2 id="place">УГТАХ ХЭСЭГ</h2>
             </div>
           </div>
-
-          <div class="glass-icon-round">
-            <div class="icon-round">           
-                <svg width="19" height="23" viewBox="0 0 19 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M19 22.3492H15.4375L12.8687 18.6302C11.8333 19.2318 10.6827 19.5556 9.5 19.5556C7.24267 19.5556 5.10195 18.3762 3.65685 16.3363L0 11.1746L3.65685 6.01286C3.74049 5.89479 3.82647 5.7796 3.91467 5.66735L0 0H3.5625L19 22.3492ZM6.35614 9.20192C6.08897 9.78981 5.9375 10.4614 5.9375 11.1746C5.9375 13.4889 7.53249 15.3651 9.5 15.3651C9.84649 15.3651 10.1814 15.3069 10.4981 15.1984L6.35614 9.20192Z" fill="white"/>
-                <path d="M19 11.1746L16.8956 14.1451L9.0648 2.80829C9.20928 2.79856 9.3544 2.79365 9.5 2.79365C11.7573 2.79365 13.898 3.97305 15.3432 6.01286L19 11.1746Z" fill="white"/>
-                </svg>
-            </div>
+          <div class="static">
+            <div class="glass-icon-round">
+              <div class="icon-round">
+                      <input type="checkbox" id="uiToggle" />
+                      <label for="uiToggle">                     
+                        <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect y="21" width="8.75" height="2.625" transform="rotate(-90 0 21)" fill="white"/>
+                        <rect y="18.375" width="8.75" height="2.625" fill="white"/>
+                        <rect width="8.75" height="2.625" fill="white"/>
+                        <rect x="2.625" width="8.75" height="2.625" transform="rotate(90 2.625 0)" fill="white"/>
+                        <rect x="21" width="8.75" height="2.625" transform="rotate(90 21 0)" fill="white"/>
+                        <rect x="21" y="2.625" width="8.75" height="2.625" transform="rotate(180 21 2.625)" fill="white"/>
+                        <rect x="21" y="21" width="8.75" height="2.625" transform="rotate(-180 21 21)" fill="white"/>
+                        <rect x="18.375" y="21" width="8.75" height="2.625" transform="rotate(-90 18.375 21)" fill="white"/>
+                        </svg>
+                        
+                      </label>       
+              </div>
           </div>
-        </div>
+          </div>
 
         <!-- CENTER CARDS -->
         <div class="ui-center">
-          <div class="card-row" id="sceneCards">
-            <article class="scene-card scene-card--active" data-scene="library">
-              <img src="assets/thumb-library.jpg" alt="Номын сан" class="scene-card__img" />
-              <div class="scene-card__label">Номын сан</div>
-            </article>
 
-            <article class="scene-card" data-scene="lab">
-              <img src="assets/thumb-lab.jpg" alt="Лаборатори" class="scene-card__img" />
-              <div class="scene-card__label">Лаборатори</div>
-            </article>
-
-            <article class="scene-card" data-scene="lecture">
-              <img src="assets/thumb-lecture.jpg" alt="Лекц" class="scene-card__img" />
-              <div class="scene-card__label">Лекц</div>
-            </article>
-          </div>
         </div>
 
         <!-- BOTTOM -->
         <div class="ui-bottom">
           <div class="walk-panel">
               <div class="glass-panel">
-                <div class="walk">
-                    
-                    <svg width="18" height="25" viewBox="0 0 18 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- hidden checkbox -->
+                <input type="checkbox" id="walkToggle" class="walk-toggle" />
+
+                <!-- visual button (label for checkbox) -->
+                <label for="walkToggle" class="walk">
+                  <svg width="18" height="25" viewBox="0 0 18 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5.26763 2.34375C5.26763 3.63817 6.31696 4.6875 7.61138 4.6875C8.9058 4.6875 9.95513 3.63817 9.95513 2.34375C9.95513 1.04933 8.9058 0 7.61138 0C6.31696 0 5.26763 1.04933 5.26763 2.34375Z" fill="white"/>
                     <path d="M16.4688 8.5165C16.0855 7.17493 14.8593 6.25 13.464 6.25H8.80502L4.41519 8.44491L1.16042 7.143L-0.000174165 10.0445L3.2546 11.3464C4.08337 11.6779 5.01435 11.6392 5.81273 11.24L6.04712 11.1228L6.88267 14.465L5.52012 15.2436C4.30454 15.9382 3.6993 17.3566 4.03886 18.7148L5.61016 25H8.83134L7.07055 17.9569L9.72077 16.4425L11.8602 25H15.0813L11.1751 9.375H13.464L14.3569 12.5H17.6069L16.4688 8.5165Z" fill="white"/>
-                    </svg>
+                  </svg>
                   <p>Явах</p>
-                </div>
-              </div>  
+                </label>
+              </div>
+ 
     
               <div class="glass-map">
                   <div class="map">
@@ -493,8 +564,9 @@
                   <div class="floor">1 давхар</div>
               </div>
           </div>  
-
-          <div class="nav-circle"></div>
+          <div class="glass-circle">
+            <div class="nav-circle"></div>
+          </div>
         </div>
 
         <!-- SUBTITLE -->
@@ -509,49 +581,213 @@
           </button>
         </div>
       </div>
-    </div>
-  </div>
 
   <!-- Simple JS: hook Panolens + card clicks -->
-  <script>
-    // INIT PANOLENS (change file paths to your own 360° images)
-    const viewer = new PANOLENS.Viewer({
-      container: document.getElementById('viewer'),
-      controlBar: true,
-      autoHideControlBar: false,
-      cameraFov: 70
+<script>
+  // process polyfill – only needed if you see "process is not defined"
+  window.process = {
+    env: {
+      NODE_ENV: 'production',
+      npm_lifecycle_event: ''
+    }
+  };
+
+  // INIT PANOLENS
+  const viewer = new PANOLENS.Viewer({
+    container: document.getElementById('viewer'),
+    autoHideControlBar: true,
+    controlBar: true,
+    cameraFov: 70
+  });
+
+  const scenes = {
+    main: new PANOLENS.ImagePanorama('assets/main.jpg'),
+
+    library: new PANOLENS.VideoPanorama('assets/1_zaal.mp4', {
+      autoplay: true,
+      loop: false,
+      muted: true
+    }),
+    libraryPhoto: new PANOLENS.ImagePanorama('assets/zaal.jpg'),
+    lab: new PANOLENS.VideoPanorama('assets/lab.mp4', {
+      autoplay: false,
+      loop: false,
+      muted: true
+    }),
+    lecture: new PANOLENS.VideoPanorama('assets/lecture.mp4', {
+      autoplay: false,
+      loop: false,
+      muted: true
+    })
+  };
+
+  // add all scenes once
+  Object.values(scenes).forEach(p => viewer.add(p));
+  viewer.setPanorama(scenes.main);
+
+  // 🔗 DOM elements (MUST be before we use them)
+  const uiCenter   = document.querySelector('.ui-center');
+  const walkToggle = document.getElementById('walkToggle'); // <input id="walkToggle">
+  const subtitle   = document.getElementById('subtitle');
+  const btnCc      = document.getElementById('btnCc');
+  const hide     = document.getElementById('uiToggle');
+  // you can fullscreen whatever you want: body, #viewer, or a wrapper.
+  // right now parentElement of #viewer is <body>, so:
+  const fullscreenTarget = document.body;
+
+  // SVGs as strings (reuse your existing ones)
+  const iconEnter = `
+    <rect y="21" width="8.75" height="2.625" transform="rotate(-90 0 21)" fill="white"/>
+    <rect y="18.375" width="8.75" height="2.625" fill="white"/>
+    <rect width="8.75" height="2.625" fill="white"/>
+    <rect x="2.625" width="8.75" height="2.625" transform="rotate(90 2.625 0)" fill="white"/>
+    <rect x="21" width="8.75" height="2.625" transform="rotate(90 21 0)" fill="white"/>
+    <rect x="21" y="2.625" width="8.75" height="2.625" transform="rotate(180 21 2.625)" fill="white"/>
+    <rect x="21" y="21" width="8.75" height="2.625" transform="rotate(-180 21 21)" fill="white"/>
+    <rect x="18.375" y="21" width="8.75" height="2.625" transform="rotate(-90 18.375 21)" fill="white"/>
+  `;
+
+  const iconExit = `
+    <rect x="12.5518" y="8.85542" width="8.85542" height="2.53448" transform="rotate(-90 12.5518 8.85542)" fill="white"/>
+    <rect x="12.5518" y="6.19879" width="8.44828" height="2.65663" fill="white"/>
+    <rect x="12.5518" y="12.1446" width="8.44828" height="2.65663" fill="white"/>
+    <rect x="15.0864" y="12.1446" width="8.85542" height="2.53448" transform="rotate(90 15.0864 12.1446)" fill="white"/>
+    <rect x="8.44824" y="12.1446" width="8.85542" height="2.53448" transform="rotate(90 8.44824 12.1446)" fill="white"/>
+    <rect x="8.44824" y="14.8012" width="8.44828" height="2.65663" transform="rotate(180 8.44824 14.8012)" fill="white"/>
+    <rect x="8.44824" y="8.85543" width="8.44828" height="2.65663" transform="rotate(-180 8.44824 8.85543)" fill="white"/>
+    <rect x="5.91357" y="8.85543" width="8.85542" height="2.53448" transform="rotate(-90 5.91357 8.85543)" fill="white"/>
+  `;
+
+  function updateFsUI(isFullscreen) {
+    // change icon
+    const svg = hide.parentElement.querySelector('svg');
+    if (svg) {
+      svg.innerHTML = isFullscreen ? iconExit : iconEnter;
+    }
+  }
+
+// when checkbox changes (click on label etc.)
+  hide.addEventListener('change', () => {
+    if (hide.checked) {
+      fullscreenTarget.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+// keep in sync with actual fullscreen state (Esc, F11, etc.)
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    // sync checkbox and UI
+    hide.checked = isFs;
+    updateFsUI(isFs);
+  });
+
+
+  function setScene(id) {
+    if(id=='library'){
+      document.getElementById('place').innerHTML = 'СПОРТ ЗААЛ';
+    }
+    const pano = scenes[id];
+    if (!pano) return;
+
+    // stop all other videos
+    Object.values(scenes).forEach(s => {
+      if (s instanceof PANOLENS.VideoPanorama) {
+        s.pauseVideo();
+      }
     });
 
-    const scenes = {
-      main: new PANOLENS.ImagePanorama('./assets/main.jpg'),
-      library: new PANOLENS.ImagePanorama('assets/library.jpg'),
-      lab: new PANOLENS.ImagePanorama('assets/lab.jpg'),
-      lecture: new PANOLENS.ImagePanorama('assets/lecture.jpg')
-    };
+    viewer.setPanorama(pano);
 
-    Object.values(scenes).forEach(p => viewer.add(p));
-    viewer.setPanorama(scenes.main);
+    // if this scene is video, play it
+    if (pano instanceof PANOLENS.VideoPanorama) {
+      pano.playVideo();
+    }
 
-    // click cards to change scene
-    const cards = document.querySelectorAll('.scene-card');
+    // update active card
+    document.querySelectorAll('.scene-card')
+      .forEach(c => c.classList.remove('scene-card--active'));
 
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        const id = card.dataset.scene;
-        if (!scenes[id]) return;
-        viewer.setPanorama(scenes[id]);
+    const active = document.querySelector(`.scene-card[data-scene="${id}"]`);
+    if (active) active.classList.add('scene-card--active');
+  }
 
-        cards.forEach(c => c.classList.remove('scene-card--active'));
-        card.classList.add('scene-card--active');
-      });
+  // 🃏 click on any card inside .ui-center (works after innerHTML changes)
+    uiCenter.addEventListener('click', (e) => {
+      const card = e.target.closest('.scene-card');
+      if (!card) return;
+
+      const id = card.dataset.scene;
+
+      // 1) switch to that scene (video plays if it's video)
+      setScene(id);
+
+      // 2) auto-hide the cards panel
+      walkToggle.checked = false;   // uncheck the toggle
+      uiCenter.innerHTML = '';      // remove the cards from center
     });
 
-    // CC toggle (just hides/shows subtitle)
-    const subtitle = document.getElementById('subtitle');
-    document.getElementById('btnCc').addEventListener('click', () => {
-      const visible = subtitle.style.display !== 'none';
-      subtitle.style.display = visible ? 'none' : 'block';
+  // ✅ checkbox toggle for "Явах"
+  walkToggle.addEventListener('change', () => {
+    if (walkToggle.checked) {
+      // CHECKED → show cards + start library video
+      uiCenter.innerHTML = `
+        <div class="card-row" id="sceneCards">
+          <article class="scene-card" data-scene="library">
+            <img src="assets/thumb-library.jpg" alt="Спорт зал" class="scene-card__img" />
+            <div class="scene-card__label">Номын сан</div>
+          </article>
+
+          <article class="scene-card" data-scene="lab">
+            <img src="assets/thumb-lab.jpg" alt="Лаборатори" class="scene-card__img" />
+            <div class="scene-card__label">Лаборатори</div>
+          </article>
+
+          <article class="scene-card" data-scene="lecture">
+            <img src="assets/thumb-lecture.jpg" alt="Лекц" class="scene-card__img" />
+            <div class="scene-card__label">Лекц</div>
+          </article>
+        </div>
+      `;
+
+    } else {
+      // UNCHECKED → hide cards, go back to main
+      uiCenter.innerHTML = '';
+      viewer.setPanorama(scenes.main);
+
+      document.querySelectorAll('.scene-card')
+        .forEach(c => c.classList.remove('scene-card--active'));
+    }
+  });
+
+  // CC toggle (just hides/shows subtitle)
+  btnCc.addEventListener('click', () => {
+    const visible = subtitle.style.display !== 'none';
+    subtitle.style.display = visible ? 'none' : 'block';
+  });
+
+  // 🎬 when library VIDEO finishes → show library PHOTO
+  function handleLibraryEnded() {
+    console.log('Library video ended, switching to photo');
+    viewer.setPanorama(scenes.libraryPhoto);
+  }
+
+  // try to get the video element now
+  let libVideoEl = scenes.library.getVideoElement();
+
+  if (libVideoEl) {
+    // video element already exists
+    libVideoEl.addEventListener('ended', handleLibraryEnded);
+  } else {
+    // wait until the panorama is loaded, then get the video element
+    scenes.library.addEventListener('load', () => {
+      libVideoEl = scenes.library.getVideoElement();
+      if (!libVideoEl) return;
+      libVideoEl.addEventListener('ended', handleLibraryEnded);
     });
-  </script>
+  }
+
+</script>
 </body>
 </html>
