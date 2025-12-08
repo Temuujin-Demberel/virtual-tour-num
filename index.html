@@ -714,28 +714,7 @@ body:fullscreen .tour-overlay {
     controlBar: true,
     cameraFov: 70
   });
-
-  const scenes = {
-    main: new PANOLENS.ImagePanorama('assets/main.jpg'),
-
-    library: new PANOLENS.VideoPanorama('assets/1_zaal.mp4', {
-      autoplay: true,
-      loop: false,
-      muted: true
-    }),
-    libraryPhoto: new PANOLENS.ImagePanorama('assets/zaal.jpg'),
-    lab: new PANOLENS.VideoPanorama('assets/lab.mp4', {
-      autoplay: false,
-      loop: false,
-      muted: true
-    }),
-    lecture: new PANOLENS.VideoPanorama('assets/lecture.mp4', {
-      autoplay: false,
-      loop: false,
-      muted: true
-    })
-  };
-
+  
   const s = {
     1 : {
       name : {
@@ -745,7 +724,7 @@ body:fullscreen .tour-overlay {
         ru : '',
         ch : ''
       },
-      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      pano : new PANOLENS.ImagePanorama('assets/main.jpg'),
       sub : {
         mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
         en : '',
@@ -762,14 +741,34 @@ body:fullscreen .tour-overlay {
         en3 : 'Flower'  
       },
       images:{
-        image1: '',
-        image2: '',
-        image3: '',
+        a1: '1zaal.jpg',
+        a2: '1nom.jpg',
+        a3: '1tsetseg.jpg'
       },
       vr360: {
-        vr1: new PANOLENS.ImagePanorama('assets/main.jpg'),
-        vr2: new PANOLENS.ImagePanorama('assets/main.jpg'),
-        vr3: new PANOLENS.ImagePanorama('assets/main.jpg') 
+        a1: new PANOLENS.ImagePanorama('assets/zaal.jpg'),
+        a2: new PANOLENS.ImagePanorama('assets/nomiinsan_1.jpg'),
+        a3: new PANOLENS.ImagePanorama('assets/main.jpg') 
+      },
+
+      vrVid: {
+        a1: new PANOLENS.VideoPanorama('assets/1_zaal_1.mp4', {
+          autoplay: false,
+          loop: false,
+          muted: true
+        }),
+
+        a2: new PANOLENS.VideoPanorama('assets/1_nomiinsan_1.mp4', {
+          autoplay: false,
+          loop: false,
+          muted: true
+        }),
+
+        a3: new PANOLENS.VideoPanorama('assets/1_tsetseg_1.mp4', {
+          autoplay: false,
+          loop: false,
+          muted: true
+        })
       }
     },
 
@@ -878,6 +877,12 @@ body:fullscreen .tour-overlay {
         vr1: new PANOLENS.ImagePanorama('assets/main.jpg'),
         vr2: new PANOLENS.ImagePanorama('assets/main.jpg'),
         vr3: new PANOLENS.ImagePanorama('assets/main.jpg') 
+      },
+
+      vrVideo:{
+        vid1: '',
+        vid2: '',
+        vid3: ''
       }
     }
   }
@@ -885,10 +890,21 @@ body:fullscreen .tour-overlay {
 
 
   // add all scenes once
-  Object.values(scenes).forEach(p => viewer.add(p));
+  Object.values(s).forEach(floor => {
+    if(floor.pano){
+      viewer.add(floor.pano);
+    }
+    if (floor.vrVid) {
+      Object.values(floor.vrVid).forEach(p => viewer.add(p));
+    }
+    if (floor.vr360) {
+      Object.values(floor.vr360).forEach(p => viewer.add(p));
+    }
+  });
+
   viewer.getCamera().position.set(20, 0, -2); // camera at origin
   viewer.getControl().update();    // example rotation
-  viewer.setPanorama(scenes.main);
+  viewer.setPanorama(s[scene].pano);
 
   // 🔗 DOM elements (MUST be before we use them)
   const uiCenter   = document.querySelector('.ui-center');
@@ -902,45 +918,45 @@ body:fullscreen .tour-overlay {
 
   //map changing
 
-  const mapEl = document.getElementById('map');
-  const mapHotspots = document.querySelectorAll('.map-hotspot');
+//   const mapEl = document.getElementById('map');
+//   const mapHotspots = document.querySelectorAll('.map-hotspot');
 
-// 1) Click on map background -> fullscreen
-  if (mapEl) {
-    mapEl.addEventListener('click', (e) => {
-      // if click was on empty map (not on a hotspot), toggle fullscreen
-      if (e.target.classList.contains('map-hotspot')) return;
+// // 1) Click on map background -> fullscreen
+//   if (mapEl) {
+//     mapEl.addEventListener('click', (e) => {
+//       // if click was on empty map (not on a hotspot), toggle fullscreen
+//       if (e.target.classList.contains('map-hotspot')) return;
 
-      if (!document.fullscreenElement) {
-        mapEl.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    });
-  }
+//       if (!document.fullscreenElement) {
+//         mapEl.requestFullscreen();
+//       } else {
+//         document.exitFullscreen();
+//       }
+//     });
+//   }
 
-// 2) Click on hotspot -> jump to scene, exit fullscreen
-  mapHotspots.forEach((hs) => {
-    hs.addEventListener('click', (e) => {
-      e.stopPropagation(); // don't trigger map's fullscreen toggle
-      const sceneId = hs.dataset.scene;
-      if (sceneId) {
-        setScene(sceneId); // uses your existing function
-      }
-      if (document.fullscreenElement === mapEl) {
-        document.exitFullscreen();
-      }
-    });
-  });
+// // 2) Click on hotspot -> jump to scene, exit fullscreen
+//   mapHotspots.forEach((hs) => {
+//     hs.addEventListener('click', (e) => {
+//       e.stopPropagation(); // don't trigger map's fullscreen toggle
+//       const sceneId = hs.dataset.scene;
+//       if (sceneId) {
+//         setScene(sceneId); // uses your existing function
+//       }
+//       if (document.fullscreenElement === mapEl) {
+//         document.exitFullscreen();
+//       }
+//     });
+//   });
 
-// 3) Optional: react when fullscreen changes (Esc, etc.)
-document.addEventListener('fullscreenchange', () => {
-  const isFs = !!document.fullscreenElement;
-  if (!isFs) {
-    // you could update UI here if needed
-    // console.log('Map fullscreen closed');
-  }
-});
+// // 3) Optional: react when fullscreen changes (Esc, etc.)
+//   document.addEventListener('fullscreenchange', () => {
+//     const isFs = !!document.fullscreenElement;
+//     if (!isFs) {
+//       // you could update UI here if needed
+//       // console.log('Map fullscreen closed');
+//     }
+//   });
 
   
   
@@ -992,29 +1008,24 @@ document.addEventListener('fullscreenchange', () => {
     updateFsUI(isFs);
   });
 
-
   function setScene(id) {
-    if(id=='library'){
-      document.getElementById('place').innerHTML = 'СПОРТ ЗААЛ';
-    }
-    const pano = scenes[id];
+    const floorId = id[0];   // '1', '2', ...
+    const itemId  = id[1];   // '1', '2', '3'
+
+    const floor = s[floorId];
+    if (!floor || !floor.vrVid) return;
+
+    const pano = floor.vrVid['a' + itemId];
     if (!pano) return;
 
-    // stop all other videos
-    Object.values(scenes).forEach(s => {
-      if (s instanceof PANOLENS.VideoPanorama) {
-        s.pauseVideo();
-      }
-    });
-
+    // viewer-т энэ панорамаг идэвхжүүлнэ
     viewer.setPanorama(pano);
 
-    // if this scene is video, play it
     if (pano instanceof PANOLENS.VideoPanorama) {
       pano.playVideo();
     }
 
-    // update active card
+    // active картын border
     document.querySelectorAll('.scene-card')
       .forEach(c => c.classList.remove('scene-card--active'));
 
@@ -1023,19 +1034,19 @@ document.addEventListener('fullscreenchange', () => {
   }
 
   // 🃏 click on any card inside .ui-center (works after innerHTML changes)
-    uiCenter.addEventListener('click', (e) => {
-      const card = e.target.closest('.scene-card');
-      if (!card) return;
+  uiCenter.addEventListener('click', (e) => {
+    const card = e.target.closest('.scene-card');
+    if (!card) return;
 
-      const id = card.dataset.scene;
+    const id = card.dataset.scene;
 
-      // 1) switch to that scene (video plays if it's video)
-      setScene(id);
+    // 1) switch to that scene (video plays if it's video)
+    setScene(id);
 
-      // 2) auto-hide the cards panel
-      walkToggle.checked = false;   // uncheck the toggle
-      uiCenter.innerHTML = '';      // remove the cards from center
-    });
+    // 2) auto-hide the cards panel
+    walkToggle.checked = false;   // uncheck the toggle
+    uiCenter.innerHTML = '';      // remove the cards from center
+  });
 
   // ✅ checkbox toggle for "Явах"
   walkToggle.addEventListener('change', () => {
@@ -1043,19 +1054,19 @@ document.addEventListener('fullscreenchange', () => {
       // CHECKED → show cards + start library video
       uiCenter.innerHTML = `
         <div class="card-row" id="sceneCards">
-          <article class="scene-card" data-scene="${s[scene].nav.en1}>
-            <img src="assets/${s[scene].images.image1}.jpg" alt="Спорт зал" class="scene-card__img" />
-            <div class="scene-card__label">${s[scene].nav[[lan+'1']]}</div>
+          <article class="scene-card" data-scene="${scene}1">
+            <img src="assets/${s[scene].images.a1}" alt="Спорт зал" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lang+'1']}</div>
+          </article>
+          
+          <article class="scene-card" data-scene="${scene}2">
+            <img src="assets/${s[scene].images.a2}" alt="Лаборатори" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lang+'2']}</div>
           </article>
 
-          <article class="scene-card" data-scene="${s[scene].nav.en2}">
-            <img src="assets/${s[scene].images.image2}.jpg" alt="Лаборатори" class="scene-card__img" />
-            <div class="scene-card__label">${s[scene].nav[lan+'2']}</div>
-          </article>
-
-          <article class="scene-card" data-scene="${s[scene].nav.en3}">
-            <img src="assets/${s[scene].images.image3}.jpg" alt="Лекц" class="scene-card__img" />
-            <div class="scene-card__label">${s[scene].nav[lan+'3']}</div>
+          <article class="scene-card" data-scene="${scene}3">
+            <img src="assets/${s[scene].images.a3}" alt="Лекц" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lang+'3']}</div>
           </article>
         </div>
       `;
@@ -1063,7 +1074,7 @@ document.addEventListener('fullscreenchange', () => {
     } else {
       // UNCHECKED → hide cards, go back to main
       uiCenter.innerHTML = '';
-      viewer.setPanorama(scenes.main);
+      viewer.setPanorama(s[scene].pano);
 
       document.querySelectorAll('.scene-card')
         .forEach(c => c.classList.remove('scene-card--active'));
@@ -1077,25 +1088,25 @@ document.addEventListener('fullscreenchange', () => {
   });
 
   // 🎬 when library VIDEO finishes → show library PHOTO
-  function handleLibraryEnded() {
+  function handleLibraryEnded(id) {
     console.log('Library video ended, switching to photo');
-    viewer.setPanorama(scenes.libraryPhoto);
+    viewer.setPanorama(s[scene].vr360['a'+id]);
   }
 
   // try to get the video element now
-  let libVideoEl = scenes.library.getVideoElement();
+  // let libVideoEl = scenes.library.getVideoElement();
 
-  if (libVideoEl) {
-    // video element already exists
-    libVideoEl.addEventListener('ended', handleLibraryEnded);
-  } else {
-    // wait until the panorama is loaded, then get the video element
-    scenes.library.addEventListener('load', () => {
-      libVideoEl = scenes.library.getVideoElement();
-      if (!libVideoEl) return;
-      libVideoEl.addEventListener('ended', handleLibraryEnded);
-    });
-  }
+  // if (libVideoEl) {
+  //   // video element already exists
+  //   libVideoEl.addEventListener('ended', handleLibraryEnded);
+  // } else {
+  //   // wait until the panorama is loaded, then get the video element
+  //   scenes.library.addEventListener('load', () => {
+  //     libVideoEl = scenes.library.getVideoElement();
+  //     if (!libVideoEl) return;
+  //     libVideoEl.addEventListener('ended', handleLibraryEnded);
+  //   });
+  // }
 
 </script>
 </body>
