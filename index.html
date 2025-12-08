@@ -25,11 +25,14 @@
 
   <!-- Now load Panolens -->
   <script src="https://cdn.jsdelivr.net/npm/panolens@0.12.1/build/panolens.min.js"></script>
+  <script src="./com-settings.js"></script>
+  <script src="./com-map.js"></script>
 
 
   <style>
     :root {
       --hdr-col:white;
+      --p-col: white;
       --blue: #1f6fff;
       --blue-soft: #e7f0ff;
       --green: #00b25c;
@@ -39,6 +42,7 @@
       --grey-soft: #f3f4f6;
       --border-col: white;
       --grey-dark: #6b7280;
+      --stngs-bckcol: hsla(0, 0%, 0%, 0.7);
       --border-soft: #dde3ed;
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
       --shadow-ui: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -55,6 +59,7 @@
     }
 
     h2{color:var(--hdr-col); margin:0px; font-family: 'raleway'; font-size: 20px; font-weight: 600;}
+    h3{color:var(--hdr-col); margin-top: 0px;}
 
     #viewer {
       position: absolute;
@@ -67,6 +72,16 @@
       position: absolute;
       inset: 0;
       pointer-events: none; /* let panolens capture drag */
+    }
+
+    .exit,
+    .settings,
+    .static,
+    .ui-bottom,
+    .lang,
+    .cc-button-wrapper,
+    .ui-center {
+      pointer-events: auto;
     }
 
     /* generic buttons */
@@ -100,45 +115,39 @@
       line-height: 1;
     }
 
-    .panolens-setting {
-  background: rgba(15, 23, 42, 0.9);
-  border-radius: 12px;
-  color: #fff;
-}
-
     /* top bar */
 
     #out{
       position: absolute;
       top:2%;
-      left:2%;
+      left:1%;
     }
 
-        .glass-top-center{
-            position: absolute;
-            left: 40%;
-            top:2%;
-            display: flex;
-            width: 306px;
-            height: 46px;
-            background-color: var(--bg-glass);
-            border-radius: 45px;
-            border: 1px solid var(--border-col);
-            align-items: center;
-            justify-content: center;
-            
-          .ui-top-center {
-                display: flex;
-                width: 293px;
-                height:31px;
-                gap:6px;
-                justify-content: center;
-                align-items: center;
-                pointer-events: none;
-                background-color: var(--blue);
-                border-radius: 50px;
-                border: 2px solid var(--border-col);
-            }
+    .glass-top-center {
+      position: absolute;
+      left: 40%;
+      top: 2%;
+      display: flex;
+      width: 306px;
+      height: 46px;
+      background-color: var(--bg-glass);
+      border-radius: 45px;
+      border: 1px solid var(--border-col);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .glass-top-center .ui-top-center {
+      display: flex;
+      width: 293px;
+      height: 31px;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      background-color: var(--blue);
+      border-radius: 50px;
+      border: 1px solid var(--border-col);
     }
 
     .static{
@@ -152,55 +161,63 @@
       align-items: center;
     }
 
-          .glass-icon-round{
-
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid var(--border-col);
-            background-color: var(--bg-glass);
-            & > .icon-round {
-              width: 40px;
-              height: 40px;
-              border-radius: 999px;
-              border: 2px solid var(--border-col);
-              background-color: var(--blue);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #fff;
-              pointer-events: auto;
-              cursor: pointer;
-              label{
-                display: flex;
-                justify-content: center;
-                align-items: center;
-              }
-              input{
-                display: none;
-              }
-            }
-        }
-
-        .glass-icon-round:hover{
-          width: 60px;
-          height: 60px;
-          background-color: var();
-        }
-
-        
-
-    .icon-round label {
-    width: 100%;
-    height: 100%;
-    display: block;
-    cursor: pointer;
-  }
+    .settings{
+      position: absolute;
+      top: 1%;
+      right: 7%;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
     
+
+    .glass-icon-round {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid var(--border-col);
+      background-color: var(--bg-glass);
+      transition: width 0.15s ease, height 0.15s ease;
+    }
+
+    .glass-icon-round .icon-round {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--border-col);
+      background-color: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .icon-round label {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .icon-round input {
+      display: none;
+    }
+
+    .glass-icon-round:hover {
+      width: 60px;
+      height: 60px;
+      background-color: var(--bg-glass);
+    }
 
 
     .ui-top-center .chip {
@@ -268,105 +285,118 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      & > .walk-panel {
-        & > .glass-panel {
-          display: flex;  
-          width: 233px;
-          height: 51px;
-          background-color: var(--bg-glass);
-          border: 1px solid var(--border-col);
-          border-radius: 50px;
-          justify-content: center;
-          align-items: center;
-          & > .walk{
-            width: 219px;
-            height: 39px;
-            display: flex;
-            justify-content: center;
-            pointer-events: auto;
-            cursor: pointer;
-            border: 2px solid var(--border-col);
-            align-items: center;
-            border-radius: 999px;
-            background: var(--blue);
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-            gap: 6px;
-          }
-
-          & > .walk-toggle {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none; /* just to be safe */
-          }
-
-          /* optional: change style when checked */
-          & > .walk-toggle:checked + .walk {
-            background: #00b25c; /* эсвэл өөр өнгө: "идэвхтэй" харагдана */
-          }
-        }
-        & > .glass-map {
-        width: 233px;
-        height: 150px;
-        background: var(--bg-glass);
-        border-radius: 22px;
-        border: 1px solid var(--border-col);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-        pointer-events: auto;
-        }
-
-        .map {
-        width: 170px;
-        height: 120px;
-        border-radius: 14px;
-        background: #e5e5e5;
-        border: 3px solid var(--blue);
-        position: relative;
-        }
-    /* mini map & "Явах" */
-        .floor {
-        position:absolute;
-        top: 85%;
-        z-index: 1;
-        align-self: center;
-        padding: 3px 16px;
-        border-radius: 8px;
-        background: #ffffff;
-        border: 2px solid var(--blue);
-        font-size: 12px;
-        color: var(--blue);
-        font-weight: 600;
-        }
     }
-    }
-    
 
-    /* big circle on the right */
-    .glass-circle{
-      width: 170px;
+    /* walk талын блок */
+
+    .walk-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .glass-panel {
+      display: flex;
+      width: 233px;
+      height: 51px;
       background-color: var(--bg-glass);
+      border: 1px solid var(--border-col);
+      border-radius: 50px;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .walk {
+      width: 219px;
+      height: 39px;
       display: flex;
       justify-content: center;
       align-items: center;
-      border-radius: 50%;
+      pointer-events: auto;
+      cursor: pointer;
       border: 1px solid var(--border-col);
-      height: 170px;
-      .nav-circle {
-        pointer-events: auto;
-        width: 155px;
-        height: 155px;
-        border-radius: 999px;
-        background: #e5e7eb;
-        border: 5px solid var(--blue);
-        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
-      }
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      gap: 6px;
     }
+
+    .walk-toggle {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .walk-toggle:checked + .walk {
+      background: #00b25c;
+    }
+
+    /* mini map */
+
+    .glass-map {
+      width: 233px;
+      height: 150px;
+      background: var(--bg-glass);
+      border-radius: 22px;
+      border: 1px solid var(--border-col);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+      position: relative;
+    }
+
+    .glass-map .map {
+      width: 170px;
+      height: 120px;
+      border-radius: 14px;
+      background: #e5e5e5;
+      border: 3px solid var(--blue);
+      position: relative;
+    }
+
+    .glass-map .floor {
+      position: absolute;
+      top: 85%;
+      z-index: 1;
+      align-self: center;
+      padding: 3px 16px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid var(--blue);
+      font-size: 12px;
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+
+    /* big circle on the right */
+  .glass-circle {
+    width: 170px;
+    height: 170px;
+    background-color: var(--bg-glass);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--border-col);
+  }
+
+  .glass-circle .nav-circle {
+    pointer-events: auto;
+    width: 155px;
+    height: 155px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    border: 5px solid var(--blue);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+  }
 
     /* subtitle + CC */
 
@@ -450,6 +480,63 @@ body:fullscreen .tour-overlay {
   0%, 100%{
     opacity: 1;
   }
+
+}
+
+.map {
+  position: relative;
+  width: 170px;
+  height: 120px;
+  border-radius: 14px;
+  background: #e5e5e5;
+  border: 3px solid var(--blue);
+  overflow: hidden;
+}
+
+/* Map image "cropped" nicely */
+.map-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Hotspots on the map */
+.map-hotspot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--blue);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transform: translate(-50%, -50%); /* center on left/top */
+}
+
+/* Optional hover effect */
+.map-hotspot:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* When the map itself is fullscreen */
+#map:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border-width: 0;
+}
+
+/* Make the image scale to fullscreen */
+#map:fullscreen .map-img {
+  width: 100%;
+  height: 100%;
+}
+
+/* Bigger hotspots in fullscreen for easier clicking */
+#map:fullscreen .map-hotspot {
+  width: 24px;
+  height: 24px;
 }
 
 
@@ -513,6 +600,20 @@ body:fullscreen .tour-overlay {
                 <h2 id="place">УГТАХ ХЭСЭГ</h2>
             </div>
           </div>
+
+          <div class="settings">
+            <div class="glass-icon-round">
+                <div class="icon-round">
+                        <input type="checkbox" id="settings" />
+                        <label for="settings">                                             
+                          <svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11.5 14.65C13.2397 14.65 14.65 13.2397 14.65 11.5C14.65 9.7603 13.2397 8.35 11.5 8.35C9.7603 8.35 8.35 9.7603 8.35 11.5C8.35 13.2397 9.7603 14.65 11.5 14.65Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M18.5636 14.3636C18.4366 14.6515 18.3987 14.9709 18.4548 15.2806C18.511 15.5902 18.6586 15.8759 18.8786 16.1009L18.9359 16.1582C19.1134 16.3355 19.2542 16.546 19.3503 16.7778C19.4464 17.0096 19.4958 17.258 19.4958 17.5089C19.4958 17.7597 19.4464 18.0082 19.3503 18.2399C19.2542 18.4717 19.1134 18.6822 18.9359 18.8595C18.7586 19.037 18.5481 19.1779 18.3163 19.2739C18.0845 19.37 17.8361 19.4195 17.5852 19.4195C17.3343 19.4195 17.0859 19.37 16.8542 19.2739C16.6224 19.1779 16.4118 19.037 16.2345 18.8595L16.1773 18.8023C15.9523 18.5822 15.6666 18.4346 15.3569 18.3784C15.0473 18.3223 14.7279 18.3602 14.44 18.4873C14.1577 18.6083 13.9169 18.8092 13.7473 19.0653C13.5777 19.3214 13.4867 19.6215 13.4855 19.9286V20.0909C13.4855 20.5972 13.2843 21.0828 12.9263 21.4408C12.5683 21.7989 12.0827 22 11.5764 22C11.07 22 10.5845 21.7989 10.2264 21.4408C9.86841 21.0828 9.66727 20.5972 9.66727 20.0909V20.005C9.65988 19.6891 9.55761 19.3826 9.37376 19.1256C9.18991 18.8685 8.93297 18.6727 8.63636 18.5636C8.34846 18.4366 8.02909 18.3987 7.71944 18.4548C7.40979 18.511 7.12406 18.6586 6.89909 18.8786L6.84182 18.9359C6.66451 19.1134 6.45396 19.2542 6.2222 19.3503C5.99044 19.4464 5.74202 19.4958 5.49114 19.4958C5.24025 19.4958 4.99183 19.4464 4.76007 19.3503C4.52831 19.2542 4.31776 19.1134 4.14045 18.9359C3.96295 18.7586 3.82214 18.5481 3.72607 18.3163C3.62999 18.0845 3.58054 17.8361 3.58054 17.5852C3.58054 17.3343 3.62999 17.0859 3.72607 16.8542C3.82214 16.6224 3.96295 16.4118 4.14045 16.2345L4.19773 16.1773C4.41778 15.9523 4.5654 15.6666 4.62155 15.3569C4.67769 15.0473 4.63979 14.7279 4.51273 14.44C4.39173 14.1577 4.19081 13.9169 3.93472 13.7473C3.67862 13.5777 3.37852 13.4867 3.07136 13.4855H2.90909C2.40277 13.4855 1.91718 13.2843 1.55916 12.9263C1.20114 12.5683 1 12.0827 1 11.5764C1 11.07 1.20114 10.5845 1.55916 10.2264C1.91718 9.86841 2.40277 9.66727 2.90909 9.66727H2.995C3.31095 9.65988 3.61737 9.55761 3.87442 9.37376C4.13148 9.18991 4.32727 8.93297 4.43636 8.63636C4.56343 8.34846 4.60133 8.02909 4.54519 7.71944C4.48904 7.40979 4.34142 7.12406 4.12136 6.89909L4.06409 6.84182C3.88659 6.66451 3.74578 6.45396 3.6497 6.2222C3.55363 5.99044 3.50418 5.74202 3.50418 5.49114C3.50418 5.24025 3.55363 4.99183 3.6497 4.76007C3.74578 4.52831 3.88659 4.31776 4.06409 4.14045C4.24139 3.96295 4.45194 3.82214 4.6837 3.72607C4.91546 3.62999 5.16389 3.58054 5.41477 3.58054C5.66566 3.58054 5.91408 3.62999 6.14584 3.72607C6.3776 3.82214 6.58815 3.96295 6.76545 4.14045L6.82273 4.19773C7.04769 4.41778 7.33342 4.5654 7.64307 4.62155C7.95272 4.67769 8.27209 4.63979 8.56 4.51273H8.63636C8.91869 4.39173 9.15947 4.19081 9.32907 3.93472C9.49867 3.67862 9.58968 3.37852 9.59091 3.07136V2.90909C9.59091 2.40277 9.79204 1.91718 10.1501 1.55916C10.5081 1.20114 10.9937 1 11.5 1C12.0063 1 12.4919 1.20114 12.8499 1.55916C13.208 1.91718 13.4091 2.40277 13.4091 2.90909V2.995C13.4103 3.30216 13.5013 3.60226 13.6709 3.85835C13.8405 4.11445 14.0813 4.31536 14.3636 4.43636C14.6515 4.56343 14.9709 4.60133 15.2806 4.54519C15.5902 4.48904 15.8759 4.34142 16.1009 4.12136L16.1582 4.06409C16.3355 3.88659 16.546 3.74578 16.7778 3.6497C17.0096 3.55363 17.258 3.50418 17.5089 3.50418C17.7597 3.50418 18.0082 3.55363 18.2399 3.6497C18.4717 3.74578 18.6822 3.88659 18.8595 4.06409C19.037 4.24139 19.1779 4.45194 19.2739 4.6837C19.37 4.91546 19.4195 5.16389 19.4195 5.41477C19.4195 5.66566 19.37 5.91408 19.2739 6.14584C19.1779 6.3776 19.037 6.58815 18.8595 6.76545L18.8023 6.82273C18.5822 7.04769 18.4346 7.33342 18.3784 7.64307C18.3223 7.95272 18.3602 8.27209 18.4873 8.56V8.63636C18.6083 8.91869 18.8092 9.15947 19.0653 9.32907C19.3214 9.49867 19.6215 9.58968 19.9286 9.59091H20.0909C20.5972 9.59091 21.0828 9.79204 21.4408 10.1501C21.7989 10.5081 22 10.9937 22 11.5C22 12.0063 21.7989 12.4919 21.4408 12.8499C21.0828 13.208 20.5972 13.4091 20.0909 13.4091H20.005C19.6978 13.4103 19.3977 13.5013 19.1416 13.6709C18.8856 13.8405 18.6846 14.0813 18.5636 14.3636Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>                       
+                        </label>       
+                </div>
+            </div>
+          </div>
           <div class="static">
             <div class="glass-icon-round">
               <div class="icon-round">
@@ -531,8 +632,10 @@ body:fullscreen .tour-overlay {
                         
                       </label>       
               </div>
+            </div>
           </div>
-          </div>
+
+        <com-settings></com-settings>
 
         <!-- CENTER CARDS -->
         <div class="ui-center">
@@ -557,12 +660,19 @@ body:fullscreen .tour-overlay {
               </div>
  
     
-              <div class="glass-map">
-                  <div class="map">
-                    <!-- draw your path / SVG here -->
-                  </div>
-                  <div class="floor">1 давхар</div>
-              </div>
+<div class="glass-map">
+  <div class="map" id="map">
+    <img src="1.svg" alt="Floor map" class="map-img">
+
+    <!-- Hotspots on the map -->
+    <button class="map-hotspot" data-scene="library"  style="left: 30%; top: 40%;"></button>
+    <button class="map-hotspot" data-scene="lab"      style="left: 60%; top: 35%;"></button>
+    <button class="map-hotspot" data-scene="lecture"  style="left: 50%; top: 70%;"></button>
+  </div>
+
+  <div class="floor" id="floor">1 давхар</div>
+</div>
+
           </div>  
           <div class="glass-circle">
             <div class="nav-circle"></div>
@@ -621,8 +731,61 @@ body:fullscreen .tour-overlay {
     })
   };
 
+  const s = {
+    1 : {
+      name : {
+        mn : '',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        mn1 : 'Спорт зал',
+        en1 : 'Sport arena',
+        mn2 : 'Номын сан',
+        en2 : 'Library',
+        mn3 :  'Цэцэг',
+        en3 : 'Flower'  
+      }
+    },
+
+    2 : {
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : '',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        zaal : '',
+        library : '',
+        flower :  ''   
+      },
+
+      loc:{
+        x: '50%',
+        y : '50%'
+      }
+    }
+  }
+
+
+
   // add all scenes once
   Object.values(scenes).forEach(p => viewer.add(p));
+  viewer.getCamera().position.set(20, 0, -2); // camera at origin
+  viewer.getControl().update();    // example rotation
   viewer.setPanorama(scenes.main);
 
   // 🔗 DOM elements (MUST be before we use them)
@@ -635,6 +798,50 @@ body:fullscreen .tour-overlay {
   // right now parentElement of #viewer is <body>, so:
   const fullscreenTarget = document.body;
 
+  //map changing
+
+  const mapEl = document.getElementById('map');
+  const mapHotspots = document.querySelectorAll('.map-hotspot');
+
+// 1) Click on map background -> fullscreen
+  if (mapEl) {
+    mapEl.addEventListener('click', (e) => {
+      // if click was on empty map (not on a hotspot), toggle fullscreen
+      if (e.target.classList.contains('map-hotspot')) return;
+
+      if (!document.fullscreenElement) {
+        mapEl.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  }
+
+// 2) Click on hotspot -> jump to scene, exit fullscreen
+  mapHotspots.forEach((hs) => {
+    hs.addEventListener('click', (e) => {
+      e.stopPropagation(); // don't trigger map's fullscreen toggle
+      const sceneId = hs.dataset.scene;
+      if (sceneId) {
+        setScene(sceneId); // uses your existing function
+      }
+      if (document.fullscreenElement === mapEl) {
+        document.exitFullscreen();
+      }
+    });
+  });
+
+// 3) Optional: react when fullscreen changes (Esc, etc.)
+document.addEventListener('fullscreenchange', () => {
+  const isFs = !!document.fullscreenElement;
+  if (!isFs) {
+    // you could update UI here if needed
+    // console.log('Map fullscreen closed');
+  }
+});
+
+  
+  
   // SVGs as strings (reuse your existing ones)
   const iconEnter = `
     <rect y="21" width="8.75" height="2.625" transform="rotate(-90 0 21)" fill="white"/>
