@@ -370,6 +370,65 @@
 
     /* subtitle + CC */
 
+
+    .video-controls {
+      position: absolute;
+      left: 50%;
+      bottom: 70px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 999px;
+      padding: 6px 14px;
+      border: 1px solid var(--border-col);
+      box-shadow: var(--shadow-ui);
+      pointer-events: auto;
+      color: #fff;
+      font-size: 13px;
+      z-index: 30;
+    }
+
+    .video-controls.hidden {
+      display: none;
+    }
+
+    .vc-btn {
+      border: none;
+      outline: none;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .vc-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .vc-skip {
+      background: var(--green);
+    }
+
+    .vc-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    #vcSpeed {
+      border-radius: 999px;
+      border: none;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
     .subtitle {
       position: absolute;
       left: 50%;
@@ -540,6 +599,7 @@ body:fullscreen .tour-overlay {
         </div>
 
         <!-- BOTTOM -->
+         
         <div class="ui-bottom">
           <div class="walk-panel">
               <div class="glass-panel">
@@ -567,6 +627,25 @@ body:fullscreen .tour-overlay {
           <div class="glass-circle">
             <div class="nav-circle"></div>
           </div>
+        </div>
+
+         <!-- VIDEO CONTROLS -->
+        <div class="video-controls hidden" id="videoControls">
+          <button class="vc-btn" id="vcRewind">« 10s</button>
+          <button class="vc-btn" id="vcPlayPause">Pause</button>
+          <button class="vc-btn" id="vcForward">10s »</button>
+
+          <label class="vc-label">
+            Хурд:
+            <select id="vcSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </label>
+
+          <button class="vc-btn vc-skip" id="vcSkip">Видео алгасах</button>
         </div>
 
         <!-- SUBTITLE -->
@@ -603,7 +682,8 @@ body:fullscreen .tour-overlay {
   const scenes = {
     main: new PANOLENS.ImagePanorama('assets/main.jpg'),
 
-    library: new PANOLENS.VideoPanorama('assets/1_zaal.mp4', {
+    // Одоогийн сценүүд
+    library: new PANOLENS.VideoPanorama('assets/1_nomiinsan.mp4', {
       autoplay: true,
       loop: false,
       muted: true
@@ -618,12 +698,50 @@ body:fullscreen .tour-overlay {
       autoplay: false,
       loop: false,
       muted: true
+    }),
+    floors: new PANOLENS.VideoPanorama('assets/1_shat.mp4', {
+      autoplay: true,
+      loop: false,
+      muted: true
+    }),
+
+    // --- Давхруудын зураг ---
+    floor1: new PANOLENS.ImagePanorama('assets/one.jpg'),
+    floor2: new PANOLENS.ImagePanorama('assets/two.jpg'),
+    floor3: new PANOLENS.ImagePanorama('assets/three.jpg'),
+    floor4: new PANOLENS.ImagePanorama('assets/four.jpg'),
+
+    // --- Шатны видеонууд ---
+    stairs_1_2: new PANOLENS.VideoPanorama('assets/1_shat.mp4', {
+      autoplay: true,
+      loop: false,
+      muted: true
+    }),
+    stairs_2_3: new PANOLENS.VideoPanorama('assets/1_shat.mp4', {
+      autoplay: true,
+      loop: false,
+      muted: true
+    }),
+    stairs_3_4: new PANOLENS.VideoPanorama('assets/1_shat.mp4', {
+      autoplay: true,
+      loop: false,
+      muted: true
     })
   };
 
+    let currentVideoPano = null;      // яг одоо тоглож байгаа VideoPanorama
+    let currentFloor=1;
+    const videoControls  = document.getElementById('videoControls');
+    const btnRew   = document.getElementById('vcRewind');
+    const btnFwd   = document.getElementById('vcForward');
+    const btnPlay  = document.getElementById('vcPlayPause');
+    const speedSel = document.getElementById('vcSpeed');
+    const btnSkip  = document.getElementById('vcSkip');
+
+
   // add all scenes once
   Object.values(scenes).forEach(p => viewer.add(p));
-  viewer.setPanorama(scenes.main);
+  setScene('main');
 
   // 🔗 DOM elements (MUST be before we use them)
   const uiCenter   = document.querySelector('.ui-center');
@@ -658,6 +776,8 @@ body:fullscreen .tour-overlay {
     <rect x="5.91357" y="8.85543" width="8.85542" height="2.53448" transform="rotate(-90 5.91357 8.85543)" fill="white"/>
   `;
 
+
+  
   function updateFsUI(isFullscreen) {
     // change icon
     const svg = hide.parentElement.querySelector('svg');
@@ -684,14 +804,93 @@ body:fullscreen .tour-overlay {
   });
 
 
-  function setScene(id) {
-    if(id=='library'){
-      document.getElementById('place').innerHTML = 'СПОРТ ЗААЛ';
+  function showFloorMenu() {
+    const allFloors = [1, 2, 3, 4];
+
+    // Одоогийн давхрыг хасна (жишээ нь 1 давхарт байвал 2,3,4 л гарна)
+    const otherFloors = allFloors.filter(f => f !== currentFloor);
+
+    uiCenter.innerHTML = `
+      <div class="card-row">
+        ${otherFloors.map(f => `
+          <article class="scene-card" data-floor="${f}">
+            <img src="assets/thumb-floor${f}.jpg" alt="${f} давхар" class="scene-card__img" />
+            <div class="scene-card__label">${f} давхар</div>
+          </article>
+        `).join('')}
+      </div>
+    `;
+  }
+  function goToFloor(targetFloor) {
+    // шатны видеоны key-г одоогийн давхар -> зорьж буй давхарын дагуу нэрлэсэн:
+    // scenes.stairs_1_2, scenes.stairs_2_3, ...
+    const key = `stairs_${currentFloor}_${targetFloor}`;
+    const stairsVideo = scenes[key];
+    const floorPano = scenes[`floor${targetFloor}`];
+
+    // бүх видео зогсооно
+    Object.values(scenes).forEach(s => {
+      if (s instanceof PANOLENS.VideoPanorama) {
+        s.pauseVideo();
+      }
+    });
+
+    // Хэрвээ шатны видео байвал эхлээд тэрийг тоглоно
+    if (stairsVideo) {
+      viewer.setPanorama(stairsVideo);
+      currentVideoPano = stairsVideo;
+
+      const v = stairsVideo.getVideoElement();
+      if (v) {
+        v.playbackRate = parseFloat(speedSel.value || '1');
+        v.play();
+      }
+
+      // видео control-оо харуулна
+      videoControls.classList.remove('hidden');
+
+      // видео дуусахад тухайн давхарын 360 зураг руу шилжинэ
+      stairsVideo.addEventListener('ended', function onEnded() {
+        stairsVideo.removeEventListener('ended', onEnded);
+
+        if (floorPano) {
+          viewer.setPanorama(floorPano);
+        }
+        currentFloor = targetFloor;
+        currentVideoPano = null;
+        videoControls.classList.add('hidden');
+      });
+
+    } else if (floorPano) {
+      // Хэрвээ шатны видео хийхгүй бол шууд зураг руу орж болно
+      viewer.setPanorama(floorPano);
+      currentFloor = targetFloor;
+      currentVideoPano = null;
+      videoControls.classList.add('hidden');
     }
+  }
+
+
+
+
+  function setScene(id) {
+    if (id == 'library') {
+      document.getElementById('place').innerHTML = 'СПОРТ ЗААЛ';
+    } else if (id == 'lab') {
+      document.getElementById('place').innerHTML = 'ЛАБОРАТОРИ';
+    } else if (id == 'lecture') {
+      document.getElementById('place').innerHTML = 'ЛЕКЦИЙН ӨРӨӨ';
+    } else if (id.startsWith('floor')) {
+      const f = id.replace('floor', '');
+      document.getElementById('place').innerHTML = f + ' ДАВХАР';
+    } else {
+      document.getElementById('place').innerHTML = 'УГТАХ ХЭСЭГ';
+    }
+
     const pano = scenes[id];
     if (!pano) return;
 
-    // stop all other videos
+    // бүх видео зогсооно
     Object.values(scenes).forEach(s => {
       if (s instanceof PANOLENS.VideoPanorama) {
         s.pauseVideo();
@@ -700,12 +899,24 @@ body:fullscreen .tour-overlay {
 
     viewer.setPanorama(pano);
 
-    // if this scene is video, play it
+    // === Видео бол currentVideoPano болгож, control-ыг харуулна ===
     if (pano instanceof PANOLENS.VideoPanorama) {
+      currentVideoPano = pano;
       pano.playVideo();
+
+      // default хурд
+      const v = pano.getVideoElement();
+      if (v) {
+        v.playbackRate = parseFloat(speedSel.value || '1');
+      }
+
+      videoControls.classList.remove('hidden');
+    } else {
+      currentVideoPano = null;
+      videoControls.classList.add('hidden');
     }
 
-    // update active card
+    // идэвхтэй карт солих
     document.querySelectorAll('.scene-card')
       .forEach(c => c.classList.remove('scene-card--active'));
 
@@ -713,20 +924,36 @@ body:fullscreen .tour-overlay {
     if (active) active.classList.add('scene-card--active');
   }
 
+
   // 🃏 click on any card inside .ui-center (works after innerHTML changes)
-    uiCenter.addEventListener('click', (e) => {
-      const card = e.target.closest('.scene-card');
-      if (!card) return;
+  uiCenter.addEventListener('click', (e) => {
+    // 1) Давхар сонгох менюний доторх card уу?
+    const floorCard = e.target.closest('[data-floor]');
+    if (floorCard) {
+      const targetFloor = parseInt(floorCard.dataset.floor, 10);
+      goToFloor(targetFloor);      // доор функц бичнэ
+      walkToggle.checked = false;
+      uiCenter.innerHTML = '';
+      return;
+    }
 
-      const id = card.dataset.scene;
+    // 2) Энгийн scene card уу?
+    const card = e.target.closest('.scene-card');
+    if (!card) return;
 
-      // 1) switch to that scene (video plays if it's video)
-      setScene(id);
+    const id = card.dataset.scene;
 
-      // 2) auto-hide the cards panel
-      walkToggle.checked = false;   // uncheck the toggle
-      uiCenter.innerHTML = '';      // remove the cards from center
-    });
+    // Хэрэв "Давхар сонгох" бол тусдаа меню гаргана
+    if (id === 'floors') {
+      showFloorMenu();
+      return;
+    }
+
+    // бусад card-ууд хэвийн ажиллана
+    setScene(id);
+    walkToggle.checked = false;
+    uiCenter.innerHTML = '';
+  });
 
   // ✅ checkbox toggle for "Явах"
   walkToggle.addEventListener('change', () => {
@@ -748,13 +975,19 @@ body:fullscreen .tour-overlay {
             <img src="assets/thumb-lecture.jpg" alt="Лекц" class="scene-card__img" />
             <div class="scene-card__label">Лекц</div>
           </article>
+
+           <!-- ШИНЭ: Давхар сонгох -->
+          <article class="scene-card" data-scene="floors">
+            <img src="assets/one.jpg" alt="Давхрууд" class="scene-card__img" />
+            <div class="scene-card__label">Давхар сонгох</div>
+          </article>
         </div>
       `;
 
     } else {
       // UNCHECKED → hide cards, go back to main
       uiCenter.innerHTML = '';
-      viewer.setPanorama(scenes.main);
+      setScene('main');   // <-- viewer.setPanorama орны оронд
 
       document.querySelectorAll('.scene-card')
         .forEach(c => c.classList.remove('scene-card--active'));
@@ -770,8 +1003,24 @@ body:fullscreen .tour-overlay {
   // 🎬 when library VIDEO finishes → show library PHOTO
   function handleLibraryEnded() {
     console.log('Library video ended, switching to photo');
-    viewer.setPanorama(scenes.libraryPhoto);
+    setScene('libraryPhoto');  // photo → non-video → дотор нь өөрөө нууна
   }
+  function handleFloorsEnded() {
+    console.log('Floors video ended, go to floor 3 photo');
+    setScene('floor3');
+    }
+
+    let floorsVideoEl = scenes.floors.getVideoElement();
+
+    if (floorsVideoEl) {
+      floorsVideoEl.addEventListener('ended', handleFloorsEnded);
+    } else {
+      scenes.floors.addEventListener('load', () => {
+        const v = scenes.floors.getVideoElement();
+        if (!v) return;
+        v.addEventListener('ended', handleFloorsEnded);
+      });
+    }
 
   // try to get the video element now
   let libVideoEl = scenes.library.getVideoElement();
@@ -787,6 +1036,73 @@ body:fullscreen .tour-overlay {
       libVideoEl.addEventListener('ended', handleLibraryEnded);
     });
   }
+    function getCurrentVideo() {
+    if (!currentVideoPano) return null;
+    return currentVideoPano.getVideoElement();
+  }
+
+  // 10 секунд ухраах
+  btnRew.addEventListener('click', () => {
+    const v = getCurrentVideo();
+    if (!v) return;
+    v.currentTime = Math.max(0, v.currentTime - 10);
+  });
+
+  // 10 секунд урагшлуулах
+  btnFwd.addEventListener('click', () => {
+    const v = getCurrentVideo();
+    if (!v) return;
+    v.currentTime = Math.min(v.duration || v.currentTime + 10, v.currentTime + 10);
+  });
+
+  // Play / Pause
+  btnPlay.addEventListener('click', () => {
+    const v = getCurrentVideo();
+    if (!v) return;
+    if (v.paused) {
+      v.play();
+      btnPlay.textContent = 'Pause';
+    } else {
+      v.pause();
+      btnPlay.textContent = 'Play';
+    }
+  });
+
+  // Хурд солих
+  speedSel.addEventListener('change', () => {
+    const v = getCurrentVideo();
+    if (!v) return;
+    v.playbackRate = parseFloat(speedSel.value || '1');
+  });
+
+  // Видео алгасах (жишээ нь спорт заал → зураг руу шууд шилжүүлэх)
+  btnSkip.addEventListener('click', () => {
+    if (!currentVideoPano) return;
+
+    // Номын сан
+    if (currentVideoPano === scenes.library) {
+      setScene('libraryPhoto');
+
+    // Лаб, лекц дуусвал гол сцэн рүү
+    } else if (currentVideoPano === scenes.lab) {
+      setScene('main');
+    } else if (currentVideoPano === scenes.lecture) {
+      setScene('main');
+
+    // "floors" интро видео (хэрвээ хэрэглэж байгаа бол)
+    } else if (currentVideoPano === scenes.floors) {
+      setScene('floor3');   // 3-р давхрын зураг
+
+    // 🔹 ШИНЭ: Шатны видеонууд
+    } else if (currentVideoPano === scenes.stairs_1_2) {
+      setScene('floor2');   // 1→2 шат → 2-р давхрын зураг
+    } else if (currentVideoPano === scenes.stairs_2_3) {
+      setScene('floor3');   // 2→3 шат → 3-р давхрын зураг
+    } else if (currentVideoPano === scenes.stairs_3_4) {
+      setScene('floor4');   // 3→4 шат → 4-р давхрын зураг
+    }
+  });
+
 
 </script>
 </body>
