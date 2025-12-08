@@ -400,6 +400,65 @@
 
     /* subtitle + CC */
 
+
+    .video-controls {
+      position: absolute;
+      left: 50%;
+      bottom: 70px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 999px;
+      padding: 6px 14px;
+      border: 1px solid var(--border-col);
+      box-shadow: var(--shadow-ui);
+      pointer-events: auto;
+      color: #fff;
+      font-size: 13px;
+      z-index: 30;
+    }
+
+    .video-controls.hidden {
+      display: none;
+    }
+
+    .vc-btn {
+      border: none;
+      outline: none;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .vc-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .vc-skip {
+      background: var(--green);
+    }
+
+    .vc-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    #vcSpeed {
+      border-radius: 999px;
+      border: none;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
     .subtitle {
       position: absolute;
       left: 50%;
@@ -643,6 +702,7 @@ body:fullscreen .tour-overlay {
         </div>
 
         <!-- BOTTOM -->
+         
         <div class="ui-bottom">
           <div class="walk-panel">
               <div class="glass-panel">
@@ -677,6 +737,25 @@ body:fullscreen .tour-overlay {
           <div class="glass-circle">
             <div class="nav-circle"></div>
           </div>
+        </div>
+
+         <!-- VIDEO CONTROLS -->
+        <div class="video-controls hidden" id="videoControls">
+          <button class="vc-btn" id="vcRewind">« 10s</button>
+          <button class="vc-btn" id="vcPlayPause">Pause</button>
+          <button class="vc-btn" id="vcForward">10s »</button>
+
+          <label class="vc-label">
+            Хурд:
+            <select id="vcSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </label>
+
+          <button class="vc-btn vc-skip" id="vcSkip">Видео алгасах</button>
         </div>
 
         <!-- SUBTITLE -->
@@ -983,6 +1062,8 @@ body:fullscreen .tour-overlay {
     <rect x="5.91357" y="8.85543" width="8.85542" height="2.53448" transform="rotate(-90 5.91357 8.85543)" fill="white"/>
   `;
 
+
+  
   function updateFsUI(isFullscreen) {
     // change icon
     const svg = hide.parentElement.querySelector('svg');
@@ -1022,7 +1103,19 @@ body:fullscreen .tour-overlay {
     viewer.setPanorama(pano);
 
     if (pano instanceof PANOLENS.VideoPanorama) {
+      currentVideoPano = pano;
       pano.playVideo();
+
+      // default хурд
+      const v = pano.getVideoElement();
+      if (v) {
+        v.playbackRate = parseFloat(speedSel.value || '1');
+      }
+
+      videoControls.classList.remove('hidden');
+    } else {
+      currentVideoPano = null;
+      videoControls.classList.add('hidden');
     }
 
     // active картын border
@@ -1033,11 +1126,13 @@ body:fullscreen .tour-overlay {
     if (active) active.classList.add('scene-card--active');
   }
 
+
   // 🃏 click on any card inside .ui-center (works after innerHTML changes)
   uiCenter.addEventListener('click', (e) => {
     const card = e.target.closest('.scene-card');
     if (!card) return;
 
+    const id = card.dataset.scene;
     const id = card.dataset.scene;
 
     // 1) switch to that scene (video plays if it's video)
