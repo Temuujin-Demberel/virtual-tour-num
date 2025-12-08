@@ -694,6 +694,11 @@ body:fullscreen .tour-overlay {
 
   <!-- Simple JS: hook Panolens + card clicks -->
 <script>
+
+  //constants
+  let lang = 'mn';
+  let scene = '1';
+
   // process polyfill – only needed if you see "process is not defined"
   window.process = {
     env: {
@@ -755,27 +760,124 @@ body:fullscreen .tour-overlay {
         en2 : 'Library',
         mn3 :  'Цэцэг',
         en3 : 'Flower'  
+      },
+      images:{
+        image1: '',
+        image2: '',
+        image3: '',
+      },
+      vr360: {
+        vr1: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr2: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr3: new PANOLENS.ImagePanorama('assets/main.jpg') 
       }
     },
 
     2 : {
-      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
-      sub : {
+      name : {
         mn : '',
         en : '',
         kr: '',
         ru : '',
         ch : ''
       },
-      nav : {
-        zaal : '',
-        library : '',
-        flower :  ''   
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
       },
+      nav : {
+        mn1 : 'Спорт зал',
+        en1 : 'Sport arena',
+        mn2 : 'Номын сан',
+        en2 : 'Library',
+        mn3 :  'Цэцэг',
+        en3 : 'Flower'  
+      },
+      images:{
+        image1: '',
+        image2: '',
+        image3: '',
+      },
+      vr360: {
+        vr1: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr2: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr3: new PANOLENS.ImagePanorama('assets/main.jpg') 
+      }
+    },
 
-      loc:{
-        x: '50%',
-        y : '50%'
+    3 : {
+      name : {
+        mn : '',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        mn1 : 'Спорт зал',
+        en1 : 'Sport arena',
+        mn2 : 'Номын сан',
+        en2 : 'Library',
+        mn3 :  'Цэцэг',
+        en3 : 'Flower'  
+      },
+      images:{
+        image1: '',
+        image2: '',
+        image3: '',
+      },
+      vr360: {
+        vr1: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr2: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr3: new PANOLENS.ImagePanorama('assets/main.jpg') 
+      }
+    },
+
+    4 : {
+      name : {
+        mn : '',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        mn1 : 'Спорт зал',
+        en1 : 'Sport arena',
+        mn2 : 'Номын сан',
+        en2 : 'Library',
+        mn3 :  'Цэцэг',
+        en3 : 'Flower'  
+      },
+      images:{
+        image1: '',
+        image2: '',
+        image3: '',
+      },
+      vr360: {
+        vr1: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr2: new PANOLENS.ImagePanorama('assets/main.jpg'),
+        vr3: new PANOLENS.ImagePanorama('assets/main.jpg') 
       }
     }
   }
@@ -941,19 +1043,19 @@ document.addEventListener('fullscreenchange', () => {
       // CHECKED → show cards + start library video
       uiCenter.innerHTML = `
         <div class="card-row" id="sceneCards">
-          <article class="scene-card" data-scene="library">
-            <img src="assets/thumb-library.jpg" alt="Спорт зал" class="scene-card__img" />
-            <div class="scene-card__label">Номын сан</div>
+          <article class="scene-card" data-scene="${s[scene].nav.en1}>
+            <img src="assets/${s[scene].images.image1}.jpg" alt="Спорт зал" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[[lan+'1']]}</div>
           </article>
 
-          <article class="scene-card" data-scene="lab">
-            <img src="assets/thumb-lab.jpg" alt="Лаборатори" class="scene-card__img" />
-            <div class="scene-card__label">Лаборатори</div>
+          <article class="scene-card" data-scene="${s[scene].nav.en2}">
+            <img src="assets/${s[scene].images.image2}.jpg" alt="Лаборатори" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lan+'2']}</div>
           </article>
 
-          <article class="scene-card" data-scene="lecture">
-            <img src="assets/thumb-lecture.jpg" alt="Лекц" class="scene-card__img" />
-            <div class="scene-card__label">Лекц</div>
+          <article class="scene-card" data-scene="${s[scene].nav.en3}">
+            <img src="assets/${s[scene].images.image3}.jpg" alt="Лекц" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lan+'3']}</div>
           </article>
         </div>
       `;

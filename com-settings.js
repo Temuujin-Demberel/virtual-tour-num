@@ -76,11 +76,11 @@ class Settings extends HTMLElement {
     if (!subtitle) return;
 
     const texts = {
-      mongolian: 'Та явах цэсн дээр дарж хаашаа явахаа сонгох боломжтой.',
-      english: 'Tap the Walk button and choose where you want to go.',
-      russian: 'Нажмите кнопку «Явах» и выберите, куда хотите пойти.',
-      korean: '“Явах” 버튼을 눌러 이동할 곳을 선택하세요.',
-      chinese: '点击“Явах”按钮选择要前往的位置。'
+      mn: 'Та явах цэсн дээр дарж хаашаа явахаа сонгох боломжтой.',
+      en: 'Tap the Walk button and choose where you want to go.',
+      ru: 'Нажмите кнопку «Явах» и выберите, куда хотите пойти.',
+      kr: '“Явах” 버튼을 눌러 이동할 곳을 선택하세요.',
+      ch: '点击“Явах”按钮选择要前往的位置。'
     };
 
     Object.keys(texts).forEach(id => {
@@ -88,6 +88,7 @@ class Settings extends HTMLElement {
       if (!el) return;
       el.addEventListener('click', () => {
         subtitle.textContent = texts[id];
+        document.querySelector(id);
       });
     });
   }
