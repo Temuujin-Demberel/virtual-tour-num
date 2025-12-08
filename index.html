@@ -995,6 +995,16 @@ body:fullscreen .tour-overlay {
   // right now parentElement of #viewer is <body>, so:
   const fullscreenTarget = document.body;
 
+  const videoControls = document.getElementById('videoControls');
+  const btnRewind    = document.getElementById('vcRewind');
+  const btnPlayPause = document.getElementById('vcPlayPause');
+  const btnForward   = document.getElementById('vcForward');
+  const btnSkip      = document.getElementById('vcSkip');
+  const speedSel     = document.getElementById('vcSpeed');
+
+  let currentVideoPano = null;
+  let currentSceneId   = null;  
+
   //map changing
 
 //   const mapEl = document.getElementById('map');
@@ -1090,6 +1100,8 @@ body:fullscreen .tour-overlay {
   });
 
   function setScene(id) {
+    currentSceneId = id;              // одоо skip хийхэд хэрэгтэй
+
     const floorId = id[0];   // '1', '2', ...
     const itemId  = id[1];   // '1', '2', '3'
 
@@ -1099,19 +1111,25 @@ body:fullscreen .tour-overlay {
     const pano = floor.vrVid['a' + itemId];
     if (!pano) return;
 
-    // viewer-т энэ панорамаг идэвхжүүлнэ
     viewer.setPanorama(pano);
 
     if (pano instanceof PANOLENS.VideoPanorama) {
       currentVideoPano = pano;
-      pano.playVideo();
-
-      // default хурд
       const v = pano.getVideoElement();
       if (v) {
         v.playbackRate = parseFloat(speedSel.value || '1');
-      }
+        v.play();
 
+        // 🎬 видео дуусахаар зураг руу автоматаар шилжинэ
+        v.onended = () => {
+          const photo = floor.vr360['a' + itemId];
+          if (photo) {
+            viewer.setPanorama(photo);
+          }
+          currentVideoPano = null;
+          videoControls.classList.add('hidden');
+        };
+      }
       videoControls.classList.remove('hidden');
     } else {
       currentVideoPano = null;
@@ -1126,13 +1144,70 @@ body:fullscreen .tour-overlay {
     if (active) active.classList.add('scene-card--active');
   }
 
+  function getCurrentVideoEl() {
+    return currentVideoPano ? currentVideoPano.getVideoElement() : null;
+  }
+
+  // хурд өөрчлөх
+  speedSel.addEventListener('change', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+    v.playbackRate = parseFloat(speedSel.value || '1');
+  });
+
+  // rewind 10s
+  btnRewind.addEventListener('click', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+    v.currentTime = Math.max(0, v.currentTime - 10);
+  });
+
+  // forward 10s
+  btnForward.addEventListener('click', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+    v.currentTime = Math.min(v.duration || v.currentTime + 10, v.currentTime + 10);
+  });
+
+  // play / pause
+  btnPlayPause.addEventListener('click', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+
+    if (v.paused) {
+      v.play();
+      btnPlayPause.textContent = 'Pause';
+    } else {
+      v.pause();
+      btnPlayPause.textContent = 'Play';
+    }
+  });
+
+  // skip → зураг руу шууд шилжих
+  btnSkip.addEventListener('click', () => {
+    if (!currentSceneId) return;
+
+    const floorId = currentSceneId[0];
+    const itemId  = currentSceneId[1];
+    const floor = s[floorId];
+    if (!floor || !floor.vr360) return;
+
+    const photo = floor.vr360['a' + itemId];
+    if (!photo) return;
+
+    viewer.setPanorama(photo);
+    currentVideoPano = null;
+    videoControls.classList.add('hidden');
+  });
+
+
+
 
   // 🃏 click on any card inside .ui-center (works after innerHTML changes)
   uiCenter.addEventListener('click', (e) => {
     const card = e.target.closest('.scene-card');
     if (!card) return;
 
-    const id = card.dataset.scene;
     const id = card.dataset.scene;
 
     // 1) switch to that scene (video plays if it's video)
