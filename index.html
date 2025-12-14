@@ -396,6 +396,11 @@
     background: #e5e7eb;
     border: 5px solid var(--blue);
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    & > video{
+      width: 100%;
+      height: 100%;
+    }
   }
 
     /* subtitle + CC */
@@ -700,6 +705,8 @@ body:fullscreen .tour-overlay {
 }
 
 
+
+
 /* 
   body:has(.icon-round input:checked) .glass-top-center,
   body:has(.icon-round input:checked) .exit,
@@ -848,7 +855,9 @@ body:fullscreen .tour-overlay {
 
           </div>  
           <div class="glass-circle">
-            <div class="nav-circle"></div>
+            <div class="nav-circle">
+              <video src="assets/1_zaal.mp4" id="guideVideo"></video>
+            </div>
           </div>
         </div>
 
@@ -894,7 +903,9 @@ let current = '1';
 
 const mapSvgWrap = document.getElementById('mapSvgWrap');
 const mapEl = document.getElementById('map');
-
+const floor = document.getElementById('floor');
+const nav_circle = document.querySelector('.nav-circle');
+const guideVid = document.getElementById('guideVideo');
 
 // % positions (easy)
 const mapPositionsPct = {
@@ -906,170 +917,46 @@ const mapPositionsPct = {
   }
 };
 
-
-// show only area around current position
-
-const DOT_KEYS_BY_FLOOR = {
-  1: ["a1", "a2", "a3", "a4"] // 4 dots total
-};
-
-let mapSvg = null;
-let dotByKey = {};
-let mapFullVB = null;
-let currentKeyByFloor = { 1: "a4" }; // default current
-
-function pctToSvg(vb, pct) {
-  return {
-    x: vb.x + (pct.left / 100) * vb.w,
-    y: vb.y + (pct.top  / 100) * vb.h
-  };
+const go = {
+  mn : 'Явах',
+  en : 'Go',
+  kr: '가다',
+  ru : 'Идти',
+  ch : '去'
 }
 
-function setViewBox(svg, vb) {
-  svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+const out = {
+  mn : 'гарах',
+  en : 'exit',
+  kr: '종료',
+  ru : 'выход',
+  ch : '退出'
 }
 
-async function loadMapSvg(floorId) {
-  const url = `${floorId}.svg`;
-  const txt = await (await fetch(url)).text();
-  mapSvgWrap.innerHTML = txt;
-
-  mapSvg = mapSvgWrap.querySelector("svg");
-  if (!mapSvg) return;
-
-  mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-  mapSvg.style.width = "100%";
-  mapSvg.style.height = "100%";
-
-  // store full viewBox
-  const vb = mapSvg.viewBox.baseVal;
-  mapFullVB = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
-
-  // clear old dots
-  dotByKey = {};
-
-  // layer
-  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  g.setAttribute("id", "hotspotLayer");
-  mapSvg.appendChild(g);
-
-  const keys = DOT_KEYS_BY_FLOOR[floorId] || [];
-  keys.forEach((key) => {
-    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    c.setAttribute("r", "10");
-    c.setAttribute("stroke", "#fff");
-    c.setAttribute("stroke-width", "2");
-    c.style.cursor = "pointer";
-
-    const pct = mapPositionsPct[floorId]?.[key];
-    if (!pct) return;
-
-    const p = pctToSvg(mapFullVB, pct);
-    c.setAttribute("cx", p.x);
-    c.setAttribute("cy", p.y);
-
-    c.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      // pano switch
-      viewer.setPanorama(s[floorId].vr360[key]);
-
-      // make clicked one current (blue)
-      updateMapCurrent(floorId, key);
-
-      if (document.fullscreenElement === mapEl) document.exitFullscreen();
-    });
-
-    dotByKey[key] = c;
-    g.appendChild(c);
-  });
-
-  // set initial current
-  updateMapCurrent(floorId, currentKeyByFloor[floorId] || "a4");
+const fl = {
+  mn : 'давхар',
+  en : 'floor',
+  kr: '바닥',
+  ru : 'пол',
+  ch : '地板'
 }
 
-// How much of the full map the mini-map should show (0.25 = 25% of width/height)
-const MINI_CROP_SCALE = 0.35;
-
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
+const bl = {
+  mn : 'Таны одоогийн байршил',
+  en : 'Your current location',
+  kr: '현재 위치',
+  ru : 'Ваше текущее местоположение',
+  ch : '你现在的位置'
 }
 
-function cropViewBoxAround(svg, fullVB, cx, cy, scale = MINI_CROP_SCALE) {
-  const w = fullVB.w * scale;
-  const h = fullVB.h * scale;
-
-  // center around current
-  let x = cx - w / 2;
-  let y = cy - h / 2;
-
-  // clamp so we never go outside the SVG
-  x = clamp(x, fullVB.x, fullVB.x + fullVB.w - w);
-  y = clamp(y, fullVB.y, fullVB.y + fullVB.h - h);
-
-  svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+const gr = {
+  mn : 'Очих боломжтой байршил',
+  en : 'Reachable location',
+  kr: '도달 가능한 위치',
+  ru : 'Доступное место',
+  ch : '无障碍位置'
 }
 
-
-function updateMapCurrent(floorId, key) {
-  if (!mapSvg || !mapFullVB) return;
-  if (!dotByKey[key]) return;
-
-  currentKeyByFloor[floorId] = key;
-
-  // color: current blue, others grey
-  Object.entries(dotByKey).forEach(([k, dot]) => {
-    dot.setAttribute("fill", k === key ? "#1f6fff" : "#bfbfbf");
-  });
-
-  const cx = parseFloat(dotByKey[key].getAttribute("cx"));
-  const cy = parseFloat(dotByKey[key].getAttribute("cy"));
-
-  // ✅ If map is fullscreen → show full map
-  if (document.fullscreenElement === mapEl) {
-    setViewBox(mapSvg, mapFullVB);
-    return;
-  }
-
-  // ✅ Mini map (not fullscreen) → show only area around current
-  cropViewBoxAround(mapSvg, mapFullVB, cx, cy, MINI_CROP_SCALE);
-}
-
-
-document.addEventListener("fullscreenchange", () => {
-  if (!mapSvg || !mapFullVB) return;
-
-  const floorId = 1; // or your current floor variable
-  const key = currentKeyByFloor[floorId] || "a4";
-
-  // Re-apply correct view (full or cropped)
-  updateMapCurrent(floorId, key);
-});
-
-// fullscreen behavior
-
-const mapExit = document.querySelector('.map-exit');
-mapExit?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  document.exitFullscreen();
-});
-
-  // process polyfill – only needed if you see "process is not defined"
-  window.process = {
-    env: {
-      NODE_ENV: 'production',
-      npm_lifecycle_event: ''
-    }
-  };
-
-  // INIT PANOLENS
-  const viewer = new PANOLENS.Viewer({
-    container: document.getElementById('viewer'),
-    autoHideControlBar: true,
-    controlBar: true,
-    cameraFov: 70
-  });
-  
   const s = {
     1 : {
       name : {
@@ -1108,22 +995,29 @@ mapExit?.addEventListener('click', (e) => {
 
       vrVid: {
         a1: new PANOLENS.VideoPanorama('assets/1_zaal_1.mp4', {
-          autoplay: false,
+          autoplay: true,
           loop: false,
           muted: true
         }),
 
         a2: new PANOLENS.VideoPanorama('assets/1_nomiinsan_1.mp4', {
-          autoplay: false,
+          autoplay: true,
           loop: false,
           muted: true
         }),
 
         a3: new PANOLENS.VideoPanorama('assets/1_tsetseg_1.mp4', {
-          autoplay: false,
+          autoplay: true,
           loop: false,
           muted: true
         })
+      },
+
+      guide: {
+        a1: 'assets/1_zaal.mp4',
+        a2: 'assets/1_LIB.mp4',
+        a3: 'assets/1_zaal.mp4',
+        a4: 'assets/1_main.mp4'
       }
     },
 
@@ -1242,13 +1136,192 @@ mapExit?.addEventListener('click', (e) => {
     }
   }
 
+// show only area around current position
 
+const DOT_KEYS_BY_FLOOR = {
+  1: ["a1", "a2", "a3", "a4"] // 4 dots total
+};
+
+let mapSvg = null;
+let dotByKey = {};
+let mapFullVB = null;
+let currentKeyByFloor = { 1: "a4" }; // default current
+
+
+
+function playGuide(id){
+  guideVid.src = s[scene].guide[id];
+  guideVid.currentTime = 0;
+  const p = guideVideo.play();
+  if (p) p.catch(()=>{});
+}
+
+function updateLang(lan){
+  lang = lan;  
+}
+
+function pctToSvg(vb, pct) {
+  return {
+    x: vb.x + (pct.left / 100) * vb.w,
+    y: vb.y + (pct.top  / 100) * vb.h
+  };
+}
+
+function setViewBox(svg, vb) {
+  svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+}
+
+async function loadMapSvg(floorId) {
+  const url = `${floorId}.svg`;
+  const txt = await (await fetch(url)).text();
+  mapSvgWrap.innerHTML = txt;
+
+  mapSvg = mapSvgWrap.querySelector("svg");
+  if (!mapSvg) return;
+
+  mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  mapSvg.style.width = "100%";
+  mapSvg.style.height = "100%";
+
+  // store full viewBox
+  const vb = mapSvg.viewBox.baseVal;
+  mapFullVB = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
+
+  // clear old dots
+  dotByKey = {};
+
+  // layer
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("id", "hotspotLayer");
+  mapSvg.appendChild(g);
+
+  const keys = DOT_KEYS_BY_FLOOR[floorId] || [];
+  keys.forEach((key) => {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("r", "10");
+    c.setAttribute("stroke", "#fff");
+    c.setAttribute("stroke-width", "2");
+    c.style.cursor = "pointer";
+
+    const pct = mapPositionsPct[floorId]?.[key];
+    if (!pct) return;
+
+    const p = pctToSvg(mapFullVB, pct);
+    c.setAttribute("cx", p.x);
+    c.setAttribute("cy", p.y);
+
+    c.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      // pano switch
+      viewer.setPanorama(s[floorId].vr360[key]);
+
+      // make clicked one current (blue)
+      updateMapCurrent(floorId, key);
+
+      if (document.fullscreenElement === mapEl) document.exitFullscreen();
+    });
+
+    dotByKey[key] = c;
+    g.appendChild(c);
+  });
+
+  // set initial current
+  updateMapCurrent(floorId, currentKeyByFloor[floorId] || "a4");
+}
+
+// How much of the full map the mini-map should show (0.25 = 25% of width/height)
+const MINI_CROP_SCALE = 0.35;
+
+
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function cropViewBoxAround(svg, fullVB, cx, cy, scale = MINI_CROP_SCALE) {
+  const w = fullVB.w * scale;
+  const h = fullVB.h * scale;
+
+  // center around current
+  let x = cx - w / 2;
+  let y = cy - h / 2;
+
+  // clamp so we never go outside the SVG
+  x = clamp(x, fullVB.x, fullVB.x + fullVB.w - w);
+  y = clamp(y, fullVB.y, fullVB.y + fullVB.h - h);
+
+  svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+}
+
+
+function updateMapCurrent(floorId, key) {
+  if (!mapSvg || !mapFullVB) return;
+  if (!dotByKey[key]) return;
+
+  currentKeyByFloor[floorId] = key;
+
+  // color: current blue, others grey
+  Object.entries(dotByKey).forEach(([k, dot]) => {
+    dot.setAttribute("fill", k === key ? "#1f6fff" : "#bfbfbf");
+  });
+
+  const cx = parseFloat(dotByKey[key].getAttribute("cx"));
+  const cy = parseFloat(dotByKey[key].getAttribute("cy"));
+
+  // ✅ If map is fullscreen → show full map
+  if (document.fullscreenElement === mapEl) {
+    setViewBox(mapSvg, mapFullVB);
+    return;
+  }
+
+  // ✅ Mini map (not fullscreen) → show only area around current
+  cropViewBoxAround(mapSvg, mapFullVB, cx, cy, MINI_CROP_SCALE);
+}
+
+
+document.addEventListener("fullscreenchange", () => {
+  if (!mapSvg || !mapFullVB) return;
+
+  const floorId = 1; // or your current floor variable
+  const key = currentKeyByFloor[floorId] || "a4";
+
+  // Re-apply correct view (full or cropped)
+  updateMapCurrent(floorId, key);
+});
+
+// fullscreen behavior
+
+const mapExit = document.querySelector('.map-exit');
+mapExit?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.exitFullscreen();
+});
+
+  // process polyfill – only needed if you see "process is not defined"
+  window.process = {
+    env: {
+      NODE_ENV: 'production',
+      npm_lifecycle_event: ''
+    }
+  };
+
+  // INIT PANOLENS
+  const viewer = new PANOLENS.Viewer({
+    container: document.getElementById('viewer'),
+    autoHideControlBar: true,
+    controlBar: true,
+    cameraFov: 70
+  });
 
   // add all scenes once
   Object.values(s).forEach(floor => {
-    if (floor.vrVid) {
-      Object.values(floor.vrVid).forEach(p => viewer.add(p));
-    }
+    // if (floor.vrVid) {
+    //   Object.values(floor.vrVid).forEach(p => {
+    //   p.autoplay = true;
+    //   viewer.add(p)}
+    // );
+    // }
     if (floor.vr360) {
       Object.values(floor.vr360).forEach(p => viewer.add(p));
     }
@@ -1259,7 +1332,6 @@ mapExit?.addEventListener('click', (e) => {
   viewer.setPanorama(s[scene].vr360.a4);
   updateMapCurrent(scene, 'a4');
   loadMapSvg(1);
-
 
   // 🔗 DOM elements (MUST be before we use them)
   const uiCenter   = document.querySelector('.ui-center');
@@ -1282,8 +1354,6 @@ mapExit?.addEventListener('click', (e) => {
   let currentSceneId   = null;  
 
   //map changing
-
-const mapHotspots = document.querySelectorAll('.hotspots');
 
 // 1) Click on map background -> fullscreen
   if (mapEl) {
@@ -1361,52 +1431,80 @@ const mapHotspots = document.querySelectorAll('.hotspots');
     updateFsUI(isFs);
   });
 
-  function setScene(id) {
-    currentSceneId = id;              // одоо skip хийхэд хэрэгтэй
+function setScene(id) {
+  currentSceneId = id;              // Save the current scene for later use
 
-    const floorId = id[0];
-    const itemId  = id[1];
-    const key     = 'a' + itemId;  // '1', '2', '3'
+  const floorId = id[0];
+  const itemId  = id[1];
+  const key     = 'a' + itemId;  // Convert '1', '2', '3' to 'a1', 'a2', 'a3'
 
-    const floor = s[floorId];
-    if (!floor || !floor.vrVid) return;
+  const floor = s[floorId];
+  if (!floor || !floor.vrVid) return;
 
-    const pano = floor.vrVid[key];
-    if (!pano) return;
+  const pano = floor.vrVid[key];
+  if (!pano) return;
 
-    viewer.setPanorama(pano);
-    updateMapCurrent(floorId, key);
+  // If there was already a video playing, stop it
+  if (currentVideoPano && currentVideoPano instanceof PANOLENS.VideoPanorama) {
+    const videoElement = currentVideoPano.getVideoElement();
+    if (videoElement) {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+    }
+  }
 
-    if (pano instanceof PANOLENS.VideoPanorama) {
-      currentVideoPano = pano;
-      const v = pano.getVideoElement();
-      if (v) {
-        v.playbackRate = parseFloat(speedSel.value || '1');
-        v.play();
+  // Set the new panorama (this includes video panoramas)
 
-        // 🎬 видео дуусахаар зураг руу автоматаар шилжинэ
-        v.onended = () => {
-          const photo = floor.vr360['a' + itemId];
-          if (photo) {
-            viewer.setPanorama(photo);
-          }
-          currentVideoPano = null;
-          videoControls.classList.add('hidden');
-        };
-      }
-      videoControls.classList.remove('hidden');
-    } else {
-      currentVideoPano = null;
-      videoControls.classList.add('hidden');
+
+  // Manually play the video if it's a video panorama (if autoplay was false)
+  if (pano instanceof PANOLENS.VideoPanorama) {
+    viewer.add(pano);
+    currentVideoPano = pano;
+    const videoElement = pano.getVideoElement();
+    if (videoElement) {
+      // Mute the video by default to ensure autoplay works
+      videoElement.muted = true;
+      videoElement.autoplay = true;
+      // Play the video
+      
+      videoElement.play()
+        .catch((error) => {
+          console.warn('Autoplay failed, please interact with the page', error);
+        });
+
+      viewer.setPanorama(pano);
+
+      // Set the desired playback rate (if you have a speed control)
+      videoElement.playbackRate = parseFloat(speedSel.value || '1');
+
+      // Handle video end (move to next panorama or reset)
+      videoElement.onended = () => {
+        const photo = floor.vr360['a' + itemId];
+        if (photo) {
+          viewer.setPanorama(photo);
+          playGuide(key); // Restart the guide video if needed
+        }
+        currentVideoPano = null;
+        videoControls.classList.add('hidden');
+      };
     }
 
-    // active картын border
-    document.querySelectorAll('.scene-card')
-      .forEach(c => c.classList.remove('scene-card--active'));
-
-    const active = document.querySelector(`.scene-card[data-scene="${id}"]`);
-    if (active) active.classList.add('scene-card--active');
+    // Show video controls if needed
+    videoControls.classList.remove('hidden');
+  } else {
+    currentVideoPano = null;
+    videoControls.classList.add('hidden');
   }
+
+  // Update the UI for active cards (mark the selected scene)
+  document.querySelectorAll('.scene-card')
+    .forEach(c => c.classList.remove('scene-card--active'));
+
+  const active = document.querySelector(`.scene-card[data-scene="${id}"]`);
+  if (active) active.classList.add('scene-card--active');
+}
+
+
 
   const el = document.querySelectorAll('cc');
   el.forEach(e => {
@@ -1533,10 +1631,10 @@ const mapHotspots = document.querySelectorAll('.hotspots');
   });
 
   // 🎬 when library VIDEO finishes → show library PHOTO
-  function handleLibraryEnded(id) {
-    console.log('Library video ended, switching to photo');
-    viewer.setPanorama(s[scene].vr360['a'+id]);
-  }
+  // function handleLibraryEnded(id) {
+  //   console.log('Library video ended, switching to photo');
+  //   viewer.setPanorama(s[scene].vr360['a'+id]);
+  // }
 
   // try to get the video element now
   // let libVideoEl = scenes.library.getVideoElement();

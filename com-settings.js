@@ -61,11 +61,11 @@ class Settings extends HTMLElement {
       </style>
       <div id="cc">
         <h3>Subtitle</h3>
-        <div id="mn">Mongolian</div>
-        <div id="en">English</div>
-        <div id="ru">Russian</div>
-        <div id="kr">Korean</div>
-        <div id="ch">Chinese</div>
+        <div id="mn" class="languages">Mongolian</div>
+        <div id="en" class="languages">English</div>
+        <div id="ru" class="languages">Russian</div>
+        <div id="kr" class="languages">Korean</div>
+        <div id="ch" class="languages">Chinese</div>
       </div>
     `;
   }
@@ -73,14 +73,12 @@ class Settings extends HTMLElement {
   attachLangHandlers() {
     const subtitle = document.getElementById('subtitle');
     if (!subtitle) return;
-
-    const texts = {
-      mn: 'Та явах цэсн дээр дарж хаашаа явахаа сонгох боломжтой.',
-      en: 'Tap the Walk button and choose where you want to go.',
-      ru: 'Нажмите кнопку «Явах» и выберите, куда хотите пойти.',
-      kr: '“Явах” 버튼을 눌러 이동할 곳을 선택하세요.',
-      ch: '点击“Явах”按钮选择要前往的位置。'
-    };
+    const languages = document.querySelectorAll('.languages');
+    languages.forEach(lan => {
+      lan.addEventListener('click', () => {
+        updateLan(lan.id);
+      });
+    })
   }
 }
 
