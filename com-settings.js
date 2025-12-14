@@ -24,7 +24,6 @@ class Settings extends HTMLElement {
   handleToggle(e) {
     if (e.target.checked) {
       this.render();
-      this.attachLangHandlers();
     } else {
       this.shadowRoot.innerHTML = '';
     }
@@ -82,15 +81,6 @@ class Settings extends HTMLElement {
       kr: '“Явах” 버튼을 눌러 이동할 곳을 선택하세요.',
       ch: '点击“Явах”按钮选择要前往的位置。'
     };
-
-    Object.keys(texts).forEach(id => {
-      const el = this.shadowRoot.getElementById(id);
-      if (!el) return;
-      el.addEventListener('click', () => {
-        subtitle.textContent = texts[id];
-        document.querySelector(id);
-      });
-    });
   }
 }
 

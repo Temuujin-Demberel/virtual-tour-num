@@ -544,21 +544,25 @@ body:fullscreen .tour-overlay {
 
 .map {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: 170px;
   height: 120px;
   border-radius: 14px;
   background: #e5e5e5;
   border: 3px solid var(--blue);
   overflow: hidden;
+  object-fit:contain;
 }
 
 /* Map image "cropped" nicely */
-.map-img {
+/* .map-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit:cover;
   display: block;
-}
+} */
 
 /* Hotspots on the map */
 .map-hotspot {
@@ -567,10 +571,73 @@ body:fullscreen .tour-overlay {
   height: 16px;
   border-radius: 50%;
   border: 2px solid #fff;
-  background: var(--blue);
+  background: #bfbfbf;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   transform: translate(-50%, -50%); /* center on left/top */
+}
+
+.map-info{
+  display: none;
+  position: absolute;
+  width: 30%;
+  bottom: 5%;
+  right: 0%;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  .circle-blue{
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--blue);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  }
+
+  p{
+    width: 90%;
+    margin: 0;
+    font-size: large;
+    font-weight: 600;
+  }
+
+  .circle-white{
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #bfbfbf;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.map-floor{
+  position: absolute;
+  left: 25%;
+  top: 5%;
+  display: none;
+  background-color: #1f6fff;
+  color: white;
+  width: 50%;
+  font-family: var(--font-sans);
+  font-size: large;
+  font-weight: 600;
+  text-align: center;
+}
+
+.map-exit{
+  display: none;
+  position: absolute;
+  top: 5%;
+  right: 0%;
+  width: 5%;
+  height: 5%;
+  background-color: #1f6fff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 /* Optional hover effect */
@@ -584,12 +651,26 @@ body:fullscreen .tour-overlay {
   height: 100vh;
   border-radius: 0;
   border-width: 0;
+
+  .map-info{
+    display: flex;
+  }
+
+  .map-floor{
+    display: block;
+  }
+
+  .map-exit{
+    display: block;
+  }
 }
 
 /* Make the image scale to fullscreen */
-#map:fullscreen .map-img {
+#map:fullscreen .map-svg-wrap {
   width: 100%;
-  height: 100%;
+  height: 80%;
+  overflow: visible;
+  object-fit:fill;
 }
 
 /* Bigger hotspots in fullscreen for easier clicking */
@@ -598,6 +679,25 @@ body:fullscreen .tour-overlay {
   height: 24px;
 }
 
+.map-hotspot--current{
+  background: var(--blue);
+  z-index: 5;
+}
+
+.map-hotspot--current::after{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius:999px;
+  border:2px solid var(--blue);
+  opacity:.6;
+  animation:pulse 1.4s infinite;
+}
+
+@keyframes pulse{
+  0%{ transform:scale(.6); opacity:.7; }
+  100%{ transform:scale(1.4); opacity:0; }
+}
 
 
 /* 
@@ -720,18 +820,31 @@ body:fullscreen .tour-overlay {
               </div>
  
     
-<div class="glass-map">
-  <div class="map" id="map">
-    <img src="1.svg" alt="Floor map" class="map-img">
+          <div class="glass-map">
+            <div class="map" id="map">
+              <button class="map-exit">гарах</button>
+              <div class="map-floor">1 давхар</div>
+              <div class="map-info">
+                <div class="circle-blue">
+                  
+                </div>
+                <p>
+                  Таны одоогийн байршил
+                </p>
+                <div class="circle-white">
+                  
+                </div>
+                <p>
+                  Очих боломжтой байршил
+                </p>
+              </div>
+              
+              <div class="map-svg-wrap" id="mapSvgWrap"></div>
+              <!-- Hotspots on the map -->
+            </div>
 
-    <!-- Hotspots on the map -->
-    <button class="map-hotspot" data-scene="library"  style="left: 30%; top: 40%;"></button>
-    <button class="map-hotspot" data-scene="lab"      style="left: 60%; top: 35%;"></button>
-    <button class="map-hotspot" data-scene="lecture"  style="left: 50%; top: 70%;"></button>
-  </div>
-
-  <div class="floor" id="floor">1 давхар</div>
-</div>
+            <div class="floor" ><span id="floor">1</span> давхар</div>
+          </div>
 
           </div>  
           <div class="glass-circle">
@@ -775,8 +888,171 @@ body:fullscreen .tour-overlay {
 <script>
 
   //constants
-  let lang = 'mn';
-  let scene = '1';
+let lang = 'mn';
+let scene = '1';
+let current = '1';
+
+const mapSvgWrap = document.getElementById('mapSvgWrap');
+const mapEl = document.getElementById('map');
+
+
+// % positions (easy)
+const mapPositionsPct = {
+  1: {
+    a1: { left: 18, top: 68 },
+    a2: { left: 48.5, top: 18 },
+    a3: { left: 70, top: 42 },
+    a4: { left: 59, top: 35 }, // main/current default
+  }
+};
+
+
+// show only area around current position
+
+const DOT_KEYS_BY_FLOOR = {
+  1: ["a1", "a2", "a3", "a4"] // 4 dots total
+};
+
+let mapSvg = null;
+let dotByKey = {};
+let mapFullVB = null;
+let currentKeyByFloor = { 1: "a4" }; // default current
+
+function pctToSvg(vb, pct) {
+  return {
+    x: vb.x + (pct.left / 100) * vb.w,
+    y: vb.y + (pct.top  / 100) * vb.h
+  };
+}
+
+function setViewBox(svg, vb) {
+  svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+}
+
+async function loadMapSvg(floorId) {
+  const url = `${floorId}.svg`;
+  const txt = await (await fetch(url)).text();
+  mapSvgWrap.innerHTML = txt;
+
+  mapSvg = mapSvgWrap.querySelector("svg");
+  if (!mapSvg) return;
+
+  mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  mapSvg.style.width = "100%";
+  mapSvg.style.height = "100%";
+
+  // store full viewBox
+  const vb = mapSvg.viewBox.baseVal;
+  mapFullVB = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
+
+  // clear old dots
+  dotByKey = {};
+
+  // layer
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("id", "hotspotLayer");
+  mapSvg.appendChild(g);
+
+  const keys = DOT_KEYS_BY_FLOOR[floorId] || [];
+  keys.forEach((key) => {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("r", "10");
+    c.setAttribute("stroke", "#fff");
+    c.setAttribute("stroke-width", "2");
+    c.style.cursor = "pointer";
+
+    const pct = mapPositionsPct[floorId]?.[key];
+    if (!pct) return;
+
+    const p = pctToSvg(mapFullVB, pct);
+    c.setAttribute("cx", p.x);
+    c.setAttribute("cy", p.y);
+
+    c.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      // pano switch
+      viewer.setPanorama(s[floorId].vr360[key]);
+
+      // make clicked one current (blue)
+      updateMapCurrent(floorId, key);
+
+      if (document.fullscreenElement === mapEl) document.exitFullscreen();
+    });
+
+    dotByKey[key] = c;
+    g.appendChild(c);
+  });
+
+  // set initial current
+  updateMapCurrent(floorId, currentKeyByFloor[floorId] || "a4");
+}
+
+// How much of the full map the mini-map should show (0.25 = 25% of width/height)
+const MINI_CROP_SCALE = 0.35;
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function cropViewBoxAround(svg, fullVB, cx, cy, scale = MINI_CROP_SCALE) {
+  const w = fullVB.w * scale;
+  const h = fullVB.h * scale;
+
+  // center around current
+  let x = cx - w / 2;
+  let y = cy - h / 2;
+
+  // clamp so we never go outside the SVG
+  x = clamp(x, fullVB.x, fullVB.x + fullVB.w - w);
+  y = clamp(y, fullVB.y, fullVB.y + fullVB.h - h);
+
+  svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+}
+
+
+function updateMapCurrent(floorId, key) {
+  if (!mapSvg || !mapFullVB) return;
+  if (!dotByKey[key]) return;
+
+  currentKeyByFloor[floorId] = key;
+
+  // color: current blue, others grey
+  Object.entries(dotByKey).forEach(([k, dot]) => {
+    dot.setAttribute("fill", k === key ? "#1f6fff" : "#bfbfbf");
+  });
+
+  const cx = parseFloat(dotByKey[key].getAttribute("cx"));
+  const cy = parseFloat(dotByKey[key].getAttribute("cy"));
+
+  // ✅ If map is fullscreen → show full map
+  if (document.fullscreenElement === mapEl) {
+    setViewBox(mapSvg, mapFullVB);
+    return;
+  }
+
+  // ✅ Mini map (not fullscreen) → show only area around current
+  cropViewBoxAround(mapSvg, mapFullVB, cx, cy, MINI_CROP_SCALE);
+}
+
+
+document.addEventListener("fullscreenchange", () => {
+  if (!mapSvg || !mapFullVB) return;
+
+  const floorId = 1; // or your current floor variable
+  const key = currentKeyByFloor[floorId] || "a4";
+
+  // Re-apply correct view (full or cropped)
+  updateMapCurrent(floorId, key);
+});
+
+// fullscreen behavior
+
+const mapExit = document.querySelector('.map-exit');
+mapExit?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.exitFullscreen();
+});
 
   // process polyfill – only needed if you see "process is not defined"
   window.process = {
@@ -803,7 +1079,6 @@ body:fullscreen .tour-overlay {
         ru : '',
         ch : ''
       },
-      pano : new PANOLENS.ImagePanorama('assets/main.jpg'),
       sub : {
         mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
         en : '',
@@ -827,7 +1102,8 @@ body:fullscreen .tour-overlay {
       vr360: {
         a1: new PANOLENS.ImagePanorama('assets/zaal.jpg'),
         a2: new PANOLENS.ImagePanorama('assets/nomiinsan_1.jpg'),
-        a3: new PANOLENS.ImagePanorama('assets/main.jpg') 
+        a3: new PANOLENS.ImagePanorama('assets/main.jpg'), 
+        a4: new PANOLENS.ImagePanorama('assets/main.jpg')
       },
 
       vrVid: {
@@ -970,9 +1246,6 @@ body:fullscreen .tour-overlay {
 
   // add all scenes once
   Object.values(s).forEach(floor => {
-    if(floor.pano){
-      viewer.add(floor.pano);
-    }
     if (floor.vrVid) {
       Object.values(floor.vrVid).forEach(p => viewer.add(p));
     }
@@ -983,7 +1256,10 @@ body:fullscreen .tour-overlay {
 
   viewer.getCamera().position.set(20, 0, -2); // camera at origin
   viewer.getControl().update();    // example rotation
-  viewer.setPanorama(s[scene].pano);
+  viewer.setPanorama(s[scene].vr360.a4);
+  updateMapCurrent(scene, 'a4');
+  loadMapSvg(1);
+
 
   // 🔗 DOM elements (MUST be before we use them)
   const uiCenter   = document.querySelector('.ui-center');
@@ -1007,36 +1283,22 @@ body:fullscreen .tour-overlay {
 
   //map changing
 
-//   const mapEl = document.getElementById('map');
-//   const mapHotspots = document.querySelectorAll('.map-hotspot');
+const mapHotspots = document.querySelectorAll('.hotspots');
 
-// // 1) Click on map background -> fullscreen
-//   if (mapEl) {
-//     mapEl.addEventListener('click', (e) => {
-//       // if click was on empty map (not on a hotspot), toggle fullscreen
-//       if (e.target.classList.contains('map-hotspot')) return;
+// 1) Click on map background -> fullscreen
+  if (mapEl) {
+    mapEl.addEventListener('click', (e) => {
+      // if click was on empty map (not on a hotspot), toggle fullscreen
 
-//       if (!document.fullscreenElement) {
-//         mapEl.requestFullscreen();
-//       } else {
-//         document.exitFullscreen();
-//       }
-//     });
-//   }
+      if (document.fullscreenElement!=mapEl) {
+        mapEl.requestFullscreen();
+      } 
+    });
 
-// // 2) Click on hotspot -> jump to scene, exit fullscreen
-//   mapHotspots.forEach((hs) => {
-//     hs.addEventListener('click', (e) => {
-//       e.stopPropagation(); // don't trigger map's fullscreen toggle
-//       const sceneId = hs.dataset.scene;
-//       if (sceneId) {
-//         setScene(sceneId); // uses your existing function
-//       }
-//       if (document.fullscreenElement === mapEl) {
-//         document.exitFullscreen();
-//       }
-//     });
-//   });
+  }
+
+
+// 2) Click on hotspot -> jump to scene, exit fullscreen
 
 // // 3) Optional: react when fullscreen changes (Esc, etc.)
 //   document.addEventListener('fullscreenchange', () => {
@@ -1102,16 +1364,18 @@ body:fullscreen .tour-overlay {
   function setScene(id) {
     currentSceneId = id;              // одоо skip хийхэд хэрэгтэй
 
-    const floorId = id[0];   // '1', '2', ...
-    const itemId  = id[1];   // '1', '2', '3'
+    const floorId = id[0];
+    const itemId  = id[1];
+    const key     = 'a' + itemId;  // '1', '2', '3'
 
     const floor = s[floorId];
     if (!floor || !floor.vrVid) return;
 
-    const pano = floor.vrVid['a' + itemId];
+    const pano = floor.vrVid[key];
     if (!pano) return;
 
     viewer.setPanorama(pano);
+    updateMapCurrent(floorId, key);
 
     if (pano instanceof PANOLENS.VideoPanorama) {
       currentVideoPano = pano;
@@ -1143,6 +1407,15 @@ body:fullscreen .tour-overlay {
     const active = document.querySelector(`.scene-card[data-scene="${id}"]`);
     if (active) active.classList.add('scene-card--active');
   }
+
+  const el = document.querySelectorAll('cc');
+  el.forEach(e => {
+    e.addEventListener('click', () => {
+      lang = e.id;
+      subtitle.textContent = s[scene].sub[lang];
+    });
+  });
+
 
   function getCurrentVideoEl() {
     return currentVideoPano ? currentVideoPano.getVideoElement() : null;
@@ -1244,7 +1517,9 @@ body:fullscreen .tour-overlay {
     } else {
       // UNCHECKED → hide cards, go back to main
       uiCenter.innerHTML = '';
-      viewer.setPanorama(s[scene].pano);
+      viewer.setPanorama(s[scene].vr360.a4);
+      updateMapCurrent(scene, 'main');
+      loadMapSvg(1);
 
       document.querySelectorAll('.scene-card')
         .forEach(c => c.classList.remove('scene-card--active'));
