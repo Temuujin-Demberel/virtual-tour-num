@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <title>360° Виртуал аялал</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+  <!-- Panolens (optional, remove if you only want layout) -->
+<!-- THREE first -->
+  <script src="https://pchen66.github.io/js/three/three.min.js"></script>
+
+  <!-- Add this small script BEFORE panolens -->
+  <script>
+    // Minimal polyfill so panolens doesn't crash on "process"
+    window.process = {
+      env: {
+        NODE_ENV: 'production',
+        npm_lifecycle_event: ''   // anything that's NOT "test" is fine
+      }
+    };
+  </script>
+
+  <!-- Now load Panolens -->
+  <script src="https://cdn.jsdelivr.net/npm/panolens@0.12.1/build/panolens.min.js"></script>
+  <script src="./com-settings.js"></script>
+  <script src="./com-map.js"></script>
+
+
+  <style>
+    :root {
+      --hdr-col:white;
+      --p-col: white;
+      --blue: #1f6fff;
+      --blue-soft: #e7f0ff;
+      --green: #00b25c;
+      --bg-page: #f2f2f2;
+      --bg-card: #ffffff;
+      --bg-glass: hsla(0, 0%, 85%, 0.5);
+      --grey-soft: #f3f4f6;
+      --border-col: white;
+      --grey-dark: #6b7280;
+      --stngs-bckcol: hsla(0, 0%, 0%, 0.7);
+      --border-soft: #dde3ed;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      --shadow-ui: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --entry-hs-top: 62%;
+      --entry-hs-left: 50%;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: var(--font-sans);
+      background: var(--bg-page);
+    }
+
+    h2{color:var(--hdr-col); margin:0px; font-family: 'raleway'; font-size: 20px; font-weight: 600;}
+    h3{color:var(--hdr-col); margin-top: 0px;}
+
+    #viewer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .tour-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none; /* let panolens capture drag */
+    }
+
+    .exit,
+    .settings,
+    .static,
+    .ui-bottom,
+    .lang,
+    .entry-cta,
+    .entry-hotspot,
+    .cc-button-wrapper,
+    .ui-center {
+      pointer-events: auto;
+    }
+
+    /* ===== Panolens infospot tooltip (Cambridge-like) ==-= */
+    .panolens-infospot-tooltip,
+    .panolens-infospot .panolens-infospot-tooltip,
+    .panolens-infospot .panolens-tooltip {
+      background: rgba(15, 23, 42, 0.92) !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      padding: 10px 12px !important;
+      font-family: 'Raleway', system-ui, sans-serif !important;
+      font-weight: 700 !important;
+      font-size: 13px !important;
+      box-shadow: 0 10px 26px rgba(0,0,0,.45) !important;
+      border: 1px solid rgba(255,255,255,.18) !important;
+      white-space: nowrap !important;
+    }
+
+    .panolens-infospot-tooltip::after,
+    .panolens-infospot .panolens-infospot-tooltip::after,
+    .panolens-infospot .panolens-tooltip::after {
+      content: "›";
+      display: inline-flex;
+      width: 22px; height: 22px;
+      align-items: center; justify-content: center;
+      margin-left: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,.45);
+      opacity: .9;
+    }
+
+
+    /* generic buttons */
+
+    .chip {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 18px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      white-space: nowrap;
+    }
+
+    .chip--green {
+      background: var(--green);
+    }
+
+    .chip--blue {
+      background: var(--blue);
+    }
+
+    .chip__icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    /* top bar */
+
+    #out{
+      position: absolute;
+      top:2%;
+      left:1%;
+    }
+
+    .glass-top-center {
+      position: absolute;
+      left: 40%;
+      top: 2%;
+      display: flex;
+      width: 306px;
+      height: 46px;
+      background-color: var(--bg-glass);
+      border-radius: 45px;
+      border: 1px solid var(--border-col);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .glass-top-center .ui-top-center {
+      display: flex;
+      width: 293px;
+      height: 31px;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      background-color: var(--blue);
+      border-radius: 50px;
+      border: 1px solid var(--border-col);
+    }
+
+    .static{
+      position: absolute;
+      top: 1%;
+      right: 1%;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .settings{
+      position: absolute;
+      top: 1%;
+      right: 7%;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    
+
+    .glass-icon-round {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid var(--border-col);
+      background-color: var(--bg-glass);
+      transition: width 0.15s ease, height 0.15s ease;
+    }
+
+    .glass-icon-round .icon-round {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--border-col);
+      background-color: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .icon-round label {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .icon-round input {
+      display: none;
+    }
+
+    .glass-icon-round:hover {
+      width: 60px;
+      height: 60px;
+      background-color: var(--bg-glass);
+    }
+
+
+    .ui-top-center .chip {
+      pointer-events: auto;
+    }
+
+    /* entry CTA */
+
+    .entry-cta {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .entry-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      border: 2px solid #fff;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .entry-chip__icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.16);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    /* entry hotspot (door) */
+
+    .entry-hotspot {
+      position: absolute;
+      left: var(--entry-hs-left);
+      top: var(--entry-hs-top);
+      transform: translate(-50%, -50%);
+      z-index: 40;
+      pointer-events: auto;
+      will-change: left, top, transform;
+    }
+    /* Cambridge-style hover label */
+    .entry-tooltip{
+      position: absolute;
+      left: 50%;
+      top: -58px;
+      transform: translate(-50%, 8px);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+      white-space: nowrap;
+    }
+
+    .entry-tooltip::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      bottom:-8px;
+      transform: translateX(-50%);
+      border:8px solid transparent;
+      border-top-color: rgba(15, 23, 42, 0.92);
+    }
+
+    .entry-tooltip__arrow{
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .entry-hotspot:hover .entry-tooltip{
+      opacity: 1.2;
+      transform: translate(-50%, 0px);
+    }
+
+
+    .entry-hotspot__btn {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      background: #f99523;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+      overflow: hidden;
+    }
+
+    .entry-hotspot__btn::before,
+    .entry-hotspot__btn::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      animation: hotspotPulse 2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .entry-hotspot__btn::after {
+      inset: 2px;
+      animation-delay: 0.5s;
+    }
+
+    .entry-hotspot__btn:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .entry-hotspot__icon {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      font-size: 30px;
+    }
+
+    @keyframes hotspotPulse {
+      0% { transform: scale(0.85); opacity: 0.7; }
+      60% { opacity: 0.1; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+
+    /* center cards */
+
+    .ui-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -45%);
+      pointer-events: auto;
+    }
+
+    .card-row {
+      display: flex;
+      gap: 24px;
+    }
+
+    .scene-card {
+      width: 170px;
+      background: var(--bg-card);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 3px solid #ffffff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+      transition: transform 120ms ease-out, box-shadow 120ms ease-out, border-color 120ms ease-out;
+    }
+
+    .scene-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+    }
+
+    .scene-card--active {
+      border-color: var(--blue);
+    }
+
+    .scene-card__img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .scene-card__label {
+      padding: 8px 10px 10px;
+      background: var(--blue);
+      color: #fff;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* bottom area */
+
+    .ui-bottom {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    /* walk талын блок */
+
+    .walk-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .glass-panel {
+      display: flex;
+      width: 233px;
+      height: 51px;
+      background-color: var(--bg-glass);
+      border: 1px solid var(--border-col);
+      border-radius: 50px;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .walk {
+      width: 219px;
+      height: 39px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: auto;
+      cursor: pointer;
+      border: 1px solid var(--border-col);
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      gap: 6px;
+    }
+
+    .walk-toggle {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .walk-toggle:checked + .walk {
+      background: #00b25c;
+    }
+
+    /* mini map */
+
+    .glass-map {
+      width: 233px;
+      height: 150px;
+      background: var(--bg-glass);
+      border-radius: 22px;
+      border: 1px solid var(--border-col);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
+      position: relative;
+    }
+
+    .glass-map .map {
+      width: 170px;
+      height: 120px;
+      border-radius: 14px;
+      background: #e5e5e5;
+      border: 3px solid var(--blue);
+      position: relative;
+    }
+
+    .glass-map .floor {
+      position: absolute;
+      top: 85%;
+      z-index: 1;
+      align-self: center;
+      padding: 3px 16px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid var(--blue);
+      font-size: 12px;
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* floor switcher */
+    .floor-switch-panel{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .floor-switch {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    .floor-chip {
+      min-width: 90px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 2px solid var(--border-col);
+      background: var(--bg-glass);
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    .floor-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .floor-chip--active {
+      background: var(--blue);
+      color: #fff;
+      border-color: #fff;
+    }
+
+    .floor-switch.hidden {
+      display: none;
+    }
+
+
+    /* big circle on the right */
+  .glass-circle {
+    width: 170px;
+    height: 170px;
+    background-color: var(--bg-glass);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--border-col);
+  }
+
+  .glass-circle .nav-circle {
+    pointer-events: auto;
+    width: 155px;
+    height: 155px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    border: 5px solid var(--blue);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    & > video{
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+    /* subtitle + CC */
+
+
+    .video-controls {
+      position: absolute;
+      left: 50%;
+      bottom: 70px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 999px;
+      padding: 6px 14px;
+      border: 1px solid var(--border-col);
+      box-shadow: var(--shadow-ui);
+      pointer-events: auto;
+      color: #fff;
+      font-size: 13px;
+      z-index: 30;
+    }
+
+    .video-controls.hidden {
+      display: none;
+    }
+
+    .vc-btn {
+      border: none;
+      outline: none;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .vc-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .vc-skip {
+      background: var(--green);
+    }
+
+    .vc-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    #vcSpeed {
+      border-radius: 999px;
+      border: none;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
+    .subtitle {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    .cc-button-wrapper {
+      position: absolute;
+      top: 93%;
+      left: 96%;
+      right: 26px;
+      bottom: 22px;
+      pointer-events: auto;
+    }
+
+    .cc-button {
+      width: 46px;
+      height: 36px;
+      padding: 0;
+      background: #bfbfbf;
+      border-radius: 10px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+    }
+
+    .cc-button__inner {
+      width: 34px;
+      height: 26px;
+      border-radius: 8px;
+      background: #fff;
+      border: 3px solid var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    /* responsive tweaks */
+
+    @media (max-width: 900px) {
+      .tour-frame { max-width: 1000px; }
+      .scene-card { width: 140px; }
+      .scene-card__img { height: 80px; }
+      .walk-panel__card { width: 170px; height: 135px; }
+      .nav-circle { width: 120px; height: 120px; }
+    }
+
+    @media (max-width: 720px) {
+      .tour-frame { aspect-ratio: 4/3; }
+      .ui-center { transform: translate(-50%, -40%); }
+      .card-row { gap: 12px; }
+      .scene-card { width: 120px; }
+    }
+
+
+body:fullscreen .tour-overlay {   
+  animation: fade 0.5s ease-out;
+}
+
+@keyframes fade{
+  50%{
+    opacity: 0;
+  }
+
+  0%, 100%{
+    opacity: 1;
+  }
+
+}
+
+.map {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 170px;
+  height: 120px;
+  border-radius: 14px;
+  background: #e5e5e5;
+  border: 3px solid var(--blue);
+  overflow: hidden;
+  object-fit:contain;
+}
+
+/* Map image "cropped" nicely */
+/* .map-img {
+  width: 100%;
+  height: 100%;
+  object-fit:cover;
+  display: block;
+} */
+
+/* Hotspots on the map */
+.map-hotspot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #bfbfbf;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transform: translate(-50%, -50%); /* center on left/top */
+}
+
+.map-info{
+  display: none;
+  position: absolute;
+  width: 30%;
+  bottom: 5%;
+  right: 0%;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  .circle-blue{
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--blue);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  }
+
+  p{
+    width: 90%;
+    margin: 0;
+    font-size: large;
+    font-weight: 600;
+  }
+
+  .circle-white{
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #bfbfbf;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.map-floor{
+  position: absolute;
+  left: 25%;
+  top: 5%;
+  display: none;
+  background-color: #1f6fff;
+  color: white;
+  width: 50%;
+  font-family: var(--font-sans);
+  font-size: large;
+  font-weight: 600;
+  text-align: center;
+}
+
+.map-exit{
+  display: none;
+  position: absolute;
+  top: 5%;
+  right: 0%;
+  width: 5%;
+  height: 5%;
+  background-color: #1f6fff;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Optional hover effect */
+.map-hotspot:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* When the map itself is fullscreen */
+#map:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border-width: 0;
+
+  .map-info{
+    display: flex;
+  }
+
+  .map-floor{
+    display: block;
+  }
+
+  .map-exit{
+    display: block;
+  }
+}
+
+/* Make the image scale to fullscreen */
+#map:fullscreen .map-svg-wrap {
+  width: 100%;
+  height: 80%;
+  overflow: visible;
+  object-fit:fill;
+}
+
+/* Bigger hotspots in fullscreen for easier clicking */
+#map:fullscreen .map-hotspot {
+  width: 24px;
+  height: 24px;
+}
+
+.map-hotspot--current{
+  background: var(--blue);
+  z-index: 5;
+}
+
+.map-hotspot--current::after{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius:999px;
+  border:2px solid var(--blue);
+  opacity:.6;
+  animation:pulse 1.4s infinite;
+}
+
+@keyframes pulse{
+  0%{ transform:scale(.6); opacity:.7; }
+  100%{ transform:scale(1.4); opacity:0; }
+}
+
+
+
+
+/* 
+  body:has(.icon-round input:checked) .glass-top-center,
+  body:has(.icon-round input:checked) .exit,
+  body:has(.icon-round input:checked) .ui-bottom,
+  body:has(.icon-round input:checked) .subtitle,
+  body:has(.icon-round input:checked) .cc-button-wrapper,
+  body:has(.icon-round input:checked) .ui-center
+  {
+    display: none;
+  } */
+
+  body.pre-entry .glass-top-center,
+  body.pre-entry .exit,
+  body.pre-entry .settings,
+  body.pre-entry .static,
+  body.pre-entry .ui-bottom,
+  body.pre-entry .subtitle,
+  body.pre-entry .cc-button-wrapper,
+  body.pre-entry .ui-center,
+  body.pre-entry .glass-map,
+  body.pre-entry .video-controls,
+  body.pre-entry com-settings {
+    display: none;
+  }
+  </style>
+</head>
+
+<body>
+      <!-- Panolens viewer goes inside here -->
+      <div id="viewer"></div>
+
+      <!-- overlay UI -->
+      <div class="tour-overlay">
+
+        <div class="entry-cta" id="entryCTA">
+          <div class="entry-chip">
+            <span>Хичээлийн 8-р байр</span>
+          </div>
+        </div>
+
+        <!-- <div class="entry-hotspot" id="entryHotspot">
+          <button class="entry-hotspot__btn" id="entryHotspotBtn" aria-label="Сургууль руу орох">
+            <span class="entry-hotspot__icon">↑</span>
+          </button>
+
+          <div class="entry-tooltip" aria-hidden="true">
+            <span>Сургууль руу орох</span>
+            <span class="entry-tooltip__arrow">›</span>
+          </div>
+        </div> -->
+
+        <!-- TOP BAR -->
+
+          <div id="out">
+            <a class="exit">
+              <svg width="162" height="51" viewBox="0 0 162 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1.5" y="1.5" width="159" height="48" rx="8.5" fill="#00A758" stroke="white" stroke-width="3"/>
+              <path d="M9.57861 22.6072C9.18808 22.9977 9.18808 23.6309 9.57861 24.0214L15.9426 30.3854C16.3331 30.7759 16.9663 30.7759 17.3568 30.3854C17.7473 29.9948 17.7473 29.3617 17.3568 28.9711L11.6999 23.3143L17.3568 17.6574C17.7473 17.2669 17.7473 16.6337 17.3568 16.2432C16.9663 15.8527 16.3331 15.8527 15.9426 16.2432L9.57861 22.6072ZM27 23.3143V22.3143L10.2857 22.3143V23.3143V24.3143L27 24.3143V23.3143Z" fill="white"/>
+              <line x1="64.7856" y1="7.28571" x2="64.7856" y2="39.3429" stroke="white"/>
+              <path d="M92.404 19.2935H85.9489V31.2857H83.2048V17.067H92.404V19.2935ZM102.111 28.317H97.8435L97.0036 31.2857H94.113L98.7712 17.067H101.261L105.832 31.2857H102.941L102.111 28.317ZM98.5173 25.983H101.467L100.011 20.7486L98.5173 25.983ZM110.051 26.0709V31.2857H107.306V17.067H112.17C112.944 17.067 113.644 17.1809 114.269 17.4088C114.894 17.6301 115.428 17.9394 115.871 18.3365C116.307 18.7401 116.642 19.2219 116.877 19.7818C117.118 20.3417 117.238 20.9634 117.238 21.647C117.238 22.2851 117.118 22.8743 116.877 23.4146C116.642 23.955 116.307 24.4205 115.871 24.8111C115.428 25.2082 114.894 25.5175 114.269 25.7388C113.644 25.9602 112.944 26.0709 112.17 26.0709H110.051ZM110.051 23.8443H112.17C112.56 23.8443 112.899 23.7857 113.185 23.6685C113.472 23.5513 113.713 23.3918 113.908 23.19C114.097 22.9882 114.237 22.7571 114.328 22.4967C114.426 22.2297 114.474 21.953 114.474 21.6666C114.474 21.3345 114.426 21.0253 114.328 20.7388C114.237 20.4524 114.097 20.2017 113.908 19.9869C113.713 19.772 113.472 19.6028 113.185 19.4791C112.899 19.3554 112.56 19.2935 112.17 19.2935H110.051V23.8443ZM126.134 28.317H121.867L121.027 31.2857H118.136L122.795 17.067H125.285L129.855 31.2857H126.965L126.134 28.317ZM122.541 25.983H125.49L124.035 20.7486L122.541 25.983ZM135.968 22.1646L138.498 17.067H141.72L137.717 24.1177L141.818 31.2857H138.615L136.008 26.1099L133.41 31.2857H130.168L134.269 24.1177L130.275 17.067H133.478L135.968 22.1646Z" fill="white"/>
+              <path d="M33.4287 10.2H55.2859V37.8857H33.4287V10.2Z" fill="white"/>
+              <path d="M40.0146 18.9427H47.9375V18.9691L51.0518 25.0823C50.7882 26.1802 50.3594 26.4195 49.2451 26.138L46.916 21.5657H44.8301L46.4902 25.9368V30.3079H57.5107C57.5371 30.3268 61.1703 32.9308 57.5107 32.931H44.041L43.3281 27.5872L39.1094 37.4915C38.0726 37.6263 37.5847 37.4116 36.9766 36.4485L41.6914 25.3802L40.3633 22.0052L38.3271 24.1878H33.4287V22.4398H36.6943L39.9834 18.9075L40.0146 18.9427ZM40.7754 12.8226C42.1279 12.8226 43.2246 13.9971 43.2246 15.4456C43.2246 16.8942 42.1279 18.0687 40.7754 18.0687C39.4231 18.0684 38.3271 16.894 38.3271 15.4456C38.3272 13.9972 39.4231 12.8228 40.7754 12.8226Z" fill="#00A758"/>
+              <path d="M54.9795 37.9355L58.9854 40.75H36.7646L33.5605 37.9355H54.9795Z" fill="white" stroke="#00A758" stroke-width="0.1"/>
+              <path d="M37.2856 37.8857H38.204H40.0407L43.7142 40.8H40.9591L37.2856 37.8857Z" fill="#00A758"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="glass-top-center">
+            <div class="ui-top-center">         
+                <svg width="27" height="21" viewBox="0 0 27 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.6758 20.1282L17.5088 20.1145V14.7844L13.3535 16.1516L13.3516 16.1458L13.3496 16.1565L9.25879 14.8274L9.25977 20.134L7.08789 20.1477L7.06055 14.1135L7.02051 14.1008L7.05957 13.9348L7.05078 11.7551L7.90723 12.0413L13.3945 13.8235L17.7754 12.3831L19.7383 11.7249L19.6758 20.1282Z" fill="white"/>
+                <rect x="0.179688" y="19.0512" width="26.4302" height="1.09641" fill="white"/>
+                <path d="M13.394 6.6202C15.3765 6.6202 16.6432 8.29387 16.8999 9.89071C16.932 10.0913 16.8503 10.4453 16.1304 10.8448C15.4424 11.2265 14.427 11.4727 13.394 11.4727C12.361 11.4727 11.3456 11.2266 10.6577 10.8448C9.93815 10.4454 9.85611 10.0914 9.88818 9.89071C10.1484 8.27121 11.4091 6.62036 13.394 6.6202Z" stroke="white" stroke-width="2"/>
+                <path d="M13.0259 0.0822249H13.7348V6.71661L13.0259 6.71661V0.0822249Z" fill="white"/>
+                <path d="M13.7344 0.0781989L17.6732 1.28561L17.6733 4.63401L13.4701 3.42737L13.7344 0.0781989Z" fill="white"/>
+                <path d="M26.7642 14.2164L24.0063 15.1784L23.5562 13.6344L26.7651 12.4967L26.7642 14.2164Z" fill="white"/>
+                <path d="M0.0458984 14.3942L2.90723 15.3531L3.3291 13.8365L0 12.6949L0.0458984 14.3942Z" fill="white"/>
+                <path d="M24.6938 20.1491L23.4653 20.1442V10.9049L24.7739 10.4186L24.6938 20.1491Z" fill="white"/>
+                <path d="M2.13477 20.1482L3.33887 20.1433L3.35352 10.9265L2.07129 10.4422L2.13477 20.1482Z" fill="white"/>
+                <path d="M26.7695 20.1447H25.5479L25.5508 12.9269L26.7959 12.4728L26.7695 20.1447Z" fill="white"/>
+                <path d="M0.0424805 20.1475H1.06396L1.04834 13.4434L0.00830078 13.0215L0.0424805 20.1475Z" fill="white"/>
+                <path d="M22.272 20.1104L20.8003 20.1006V10.5489L13.3062 12.9317L13.3052 12.9395L4.57373 10.0303L4.9751 8.36136L13.3159 11.1387L20.8452 8.74417L22.3276 8.24613L22.272 20.1104Z" fill="white"/>
+                <path d="M4.4082 8.12177L5.93581 8.64354L5.93658 20.1629L4.46427 20.1722L4.4082 8.12177Z" fill="white"/>
+                <path d="M2.16553 12.0535L5.4973 13.2885L5.88404 11.8603L2.55226 10.6253L2.16553 12.0535Z" fill="white"/>
+                <path d="M24.6543 12.0151L21.1705 13.3065L20.7887 11.8967L24.2725 10.6053L24.6543 12.0151Z" fill="white"/>
+                </svg>
+                <h2 id="place">УГТАХ ХЭСЭГ</h2>
+            </div>
+          </div>
+
+          <div class="settings">
+            <div class="glass-icon-round">
+                <div class="icon-round">
+                        <input type="checkbox" id="settings" />
+                        <label for="settings">                                             
+                          <svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11.5 14.65C13.2397 14.65 14.65 13.2397 14.65 11.5C14.65 9.7603 13.2397 8.35 11.5 8.35C9.7603 8.35 8.35 9.7603 8.35 11.5C8.35 13.2397 9.7603 14.65 11.5 14.65Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M18.5636 14.3636C18.4366 14.6515 18.3987 14.9709 18.4548 15.2806C18.511 15.5902 18.6586 15.8759 18.8786 16.1009L18.9359 16.1582C19.1134 16.3355 19.2542 16.546 19.3503 16.7778C19.4464 17.0096 19.4958 17.258 19.4958 17.5089C19.4958 17.7597 19.4464 18.0082 19.3503 18.2399C19.2542 18.4717 19.1134 18.6822 18.9359 18.8595C18.7586 19.037 18.5481 19.1779 18.3163 19.2739C18.0845 19.37 17.8361 19.4195 17.5852 19.4195C17.3343 19.4195 17.0859 19.37 16.8542 19.2739C16.6224 19.1779 16.4118 19.037 16.2345 18.8595L16.1773 18.8023C15.9523 18.5822 15.6666 18.4346 15.3569 18.3784C15.0473 18.3223 14.7279 18.3602 14.44 18.4873C14.1577 18.6083 13.9169 18.8092 13.7473 19.0653C13.5777 19.3214 13.4867 19.6215 13.4855 19.9286V20.0909C13.4855 20.5972 13.2843 21.0828 12.9263 21.4408C12.5683 21.7989 12.0827 22 11.5764 22C11.07 22 10.5845 21.7989 10.2264 21.4408C9.86841 21.0828 9.66727 20.5972 9.66727 20.0909V20.005C9.65988 19.6891 9.55761 19.3826 9.37376 19.1256C9.18991 18.8685 8.93297 18.6727 8.63636 18.5636C8.34846 18.4366 8.02909 18.3987 7.71944 18.4548C7.40979 18.511 7.12406 18.6586 6.89909 18.8786L6.84182 18.9359C6.66451 19.1134 6.45396 19.2542 6.2222 19.3503C5.99044 19.4464 5.74202 19.4958 5.49114 19.4958C5.24025 19.4958 4.99183 19.4464 4.76007 19.3503C4.52831 19.2542 4.31776 19.1134 4.14045 18.9359C3.96295 18.7586 3.82214 18.5481 3.72607 18.3163C3.62999 18.0845 3.58054 17.8361 3.58054 17.5852C3.58054 17.3343 3.62999 17.0859 3.72607 16.8542C3.82214 16.6224 3.96295 16.4118 4.14045 16.2345L4.19773 16.1773C4.41778 15.9523 4.5654 15.6666 4.62155 15.3569C4.67769 15.0473 4.63979 14.7279 4.51273 14.44C4.39173 14.1577 4.19081 13.9169 3.93472 13.7473C3.67862 13.5777 3.37852 13.4867 3.07136 13.4855H2.90909C2.40277 13.4855 1.91718 13.2843 1.55916 12.9263C1.20114 12.5683 1 12.0827 1 11.5764C1 11.07 1.20114 10.5845 1.55916 10.2264C1.91718 9.86841 2.40277 9.66727 2.90909 9.66727H2.995C3.31095 9.65988 3.61737 9.55761 3.87442 9.37376C4.13148 9.18991 4.32727 8.93297 4.43636 8.63636C4.56343 8.34846 4.60133 8.02909 4.54519 7.71944C4.48904 7.40979 4.34142 7.12406 4.12136 6.89909L4.06409 6.84182C3.88659 6.66451 3.74578 6.45396 3.6497 6.2222C3.55363 5.99044 3.50418 5.74202 3.50418 5.49114C3.50418 5.24025 3.55363 4.99183 3.6497 4.76007C3.74578 4.52831 3.88659 4.31776 4.06409 4.14045C4.24139 3.96295 4.45194 3.82214 4.6837 3.72607C4.91546 3.62999 5.16389 3.58054 5.41477 3.58054C5.66566 3.58054 5.91408 3.62999 6.14584 3.72607C6.3776 3.82214 6.58815 3.96295 6.76545 4.14045L6.82273 4.19773C7.04769 4.41778 7.33342 4.5654 7.64307 4.62155C7.95272 4.67769 8.27209 4.63979 8.56 4.51273H8.63636C8.91869 4.39173 9.15947 4.19081 9.32907 3.93472C9.49867 3.67862 9.58968 3.37852 9.59091 3.07136V2.90909C9.59091 2.40277 9.79204 1.91718 10.1501 1.55916C10.5081 1.20114 10.9937 1 11.5 1C12.0063 1 12.4919 1.20114 12.8499 1.55916C13.208 1.91718 13.4091 2.40277 13.4091 2.90909V2.995C13.4103 3.30216 13.5013 3.60226 13.6709 3.85835C13.8405 4.11445 14.0813 4.31536 14.3636 4.43636C14.6515 4.56343 14.9709 4.60133 15.2806 4.54519C15.5902 4.48904 15.8759 4.34142 16.1009 4.12136L16.1582 4.06409C16.3355 3.88659 16.546 3.74578 16.7778 3.6497C17.0096 3.55363 17.258 3.50418 17.5089 3.50418C17.7597 3.50418 18.0082 3.55363 18.2399 3.6497C18.4717 3.74578 18.6822 3.88659 18.8595 4.06409C19.037 4.24139 19.1779 4.45194 19.2739 4.6837C19.37 4.91546 19.4195 5.16389 19.4195 5.41477C19.4195 5.66566 19.37 5.91408 19.2739 6.14584C19.1779 6.3776 19.037 6.58815 18.8595 6.76545L18.8023 6.82273C18.5822 7.04769 18.4346 7.33342 18.3784 7.64307C18.3223 7.95272 18.3602 8.27209 18.4873 8.56V8.63636C18.6083 8.91869 18.8092 9.15947 19.0653 9.32907C19.3214 9.49867 19.6215 9.58968 19.9286 9.59091H20.0909C20.5972 9.59091 21.0828 9.79204 21.4408 10.1501C21.7989 10.5081 22 10.9937 22 11.5C22 12.0063 21.7989 12.4919 21.4408 12.8499C21.0828 13.208 20.5972 13.4091 20.0909 13.4091H20.005C19.6978 13.4103 19.3977 13.5013 19.1416 13.6709C18.8856 13.8405 18.6846 14.0813 18.5636 14.3636Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>                       
+                        </label>       
+                </div>
+            </div>
+          </div>
+          <div class="static">
+            <div class="glass-icon-round">
+              <div class="icon-round">
+                      <input type="checkbox" id="uiToggle" />
+                      <label for="uiToggle">                     
+                        <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect y="21" width="8.75" height="2.625" transform="rotate(-90 0 21)" fill="white"/>
+                        <rect y="18.375" width="8.75" height="2.625" fill="white"/>
+                        <rect width="8.75" height="2.625" fill="white"/>
+                        <rect x="2.625" width="8.75" height="2.625" transform="rotate(90 2.625 0)" fill="white"/>
+                        <rect x="21" width="8.75" height="2.625" transform="rotate(90 21 0)" fill="white"/>
+                        <rect x="21" y="2.625" width="8.75" height="2.625" transform="rotate(180 21 2.625)" fill="white"/>
+                        <rect x="21" y="21" width="8.75" height="2.625" transform="rotate(-180 21 21)" fill="white"/>
+                        <rect x="18.375" y="21" width="8.75" height="2.625" transform="rotate(-90 18.375 21)" fill="white"/>
+                        </svg>
+                        
+                      </label>       
+              </div>
+            </div>
+          </div>
+
+        <com-settings></com-settings>
+
+        <!-- CENTER CARDS -->
+        <div class="ui-center">
+
+        </div>
+
+        <!-- BOTTOM -->
+         
+        <div class="ui-bottom">
+          <div class="walk-panel">
+              <div class="glass-panel">
+                <!-- hidden checkbox -->
+                <input type="checkbox" id="walkToggle" class="walk-toggle" />
+
+                <!-- visual button (label for checkbox) -->
+                <label for="walkToggle" class="walk">
+                  <svg width="18" height="25" viewBox="0 0 18 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.26763 2.34375C5.26763 3.63817 6.31696 4.6875 7.61138 4.6875C8.9058 4.6875 9.95513 3.63817 9.95513 2.34375C9.95513 1.04933 8.9058 0 7.61138 0C6.31696 0 5.26763 1.04933 5.26763 2.34375Z" fill="white"/>
+                    <path d="M16.4688 8.5165C16.0855 7.17493 14.8593 6.25 13.464 6.25H8.80502L4.41519 8.44491L1.16042 7.143L-0.000174165 10.0445L3.2546 11.3464C4.08337 11.6779 5.01435 11.6392 5.81273 11.24L6.04712 11.1228L6.88267 14.465L5.52012 15.2436C4.30454 15.9382 3.6993 17.3566 4.03886 18.7148L5.61016 25H8.83134L7.07055 17.9569L9.72077 16.4425L11.8602 25H15.0813L11.1751 9.375H13.464L14.3569 12.5H17.6069L16.4688 8.5165Z" fill="white"/>
+                  </svg>
+                  <p>Явах</p>
+                </label>
+              </div>
+ 
+    
+          <div class="glass-map">
+            <div class="map" id="map">
+              <button class="map-exit">гарах</button>
+              <div class="map-floor">1 давхар</div>
+              <div class="map-info">
+                <div class="circle-blue">
+                  
+                </div>
+                <p>
+                  Таны одоогийн байршил
+                </p>
+                <div class="circle-white">
+                  
+                </div>
+                <p>
+                  Очих боломжтой байршил
+                </p>
+              </div>
+              
+              <div class="map-svg-wrap" id="mapSvgWrap"></div>
+              <!-- Hotspots on the map -->
+            </div>
+
+            <div class="floor" ><span id="floor">1</span> давхар</div>
+          </div>
+          </div>  
+
+          <div class="glass-circle">
+            <div class="nav-circle">
+              <video src="assets/1_zaal.mp4" id="guideVideo"></video>
+            </div>
+          </div>
+        </div>
+
+         <!-- VIDEO CONTROLS -->
+        <div class="video-controls hidden" id="videoControls">
+          <button class="vc-btn" id="vcRewind">« 10s</button>
+          <button class="vc-btn" id="vcPlayPause">Pause</button>
+          <button class="vc-btn" id="vcForward">10s »</button>
+
+          <label class="vc-label">
+            Хурд:
+            <select id="vcSpeed">
+              <option value="0.5">0.5x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </label>
+
+          <button class="vc-btn vc-skip" id="vcSkip">Видео алгасах</button>
+        </div>
+
+        <!-- SUBTITLE -->
+        <div class="subtitle" id="subtitle">
+          Та явах цэсн дээр дарж хаашаа явахаа сонгох боломжтой.
+        </div>
+
+        <!-- CC BUTTON -->
+        <div class="cc-button-wrapper">
+          <button class="cc-button" id="btnCc">
+            <div class="cc-button__inner">CC</div>
+          </button>
+        </div>
+      </div>
+
+  <!-- Simple JS: hook Panolens + card clicks -->
+<script>
+
+  //constants
+let lang = 'mn';
+let scene = '1';
+let current = '1';
+
+const mapSvgWrap = document.getElementById('mapSvgWrap');
+const mapEl = document.getElementById('map');
+const floor = document.getElementById('floor');
+const mapFloorLabel = document.querySelector('.map-floor');
+const guideVid = document.getElementById('guideVideo');
+const place = document.getElementById('place');
+
+const uiBottom = document.querySelector('.ui-bottom');
+const cc = document.querySelector('.cc-button-wrapper');
+const subt = document.getElementById('subtitle');
+
+const exitBtn = document.querySelector('.exit');
+
+
+
+// % positions (easy)
+const mapPositionsPct = {
+  1: {
+    a1: { left: 18, top: 68 },
+    a2: { left: 48.5, top: 18 },
+    a3: { left: 70, top: 42 },
+    a4: { left: 59, top: 35 } // main/current default
+  },
+
+  2: {
+    a1: { left: 7, top: 17 },
+    a2: { left: 50, top: 18 },
+    a3: { left: 86, top: 38 },
+    a4: { left: 50, top: 48 } // main/current default
+  },
+
+  3: {
+    a1: { left: 50, top: 75 },
+    a2: { left: 50, top: 18 },
+    a3: { left: 65, top: 48 },
+    a4: { left: 50, top: 48 } // main/current default
+  },
+
+  4: {
+    a1: { left: 22, top: 44 },
+    a2: { left: 50, top: 42 },
+    a3: { left: 84, top: 18 },
+    a4: { left: 72, top: 42 } // main/current default
+  }
+};
+
+const go = {
+  mn : 'Явах',
+  en : 'Go',
+  kr: '가다',
+  ru : 'Идти',
+  ch : '去'
+}
+
+const out = {
+  mn : 'гарах',
+  en : 'exit',
+  kr: '종료',
+  ru : 'выход',
+  ch : '退出'
+}
+
+const fl = {
+  mn : 'давхар',
+  en : 'floor',
+  kr: '바닥',
+  ru : 'пол',
+  ch : '地板'
+}
+
+const bl = {
+  mn : 'Таны одоогийн байршил',
+  en : 'Your current location',
+  kr: '현재 위치',
+  ru : 'Ваше текущее местоположение',
+  ch : '你现在的位置'
+}
+
+const gr = {
+  mn : 'Очих боломжтой байршил',
+  en : 'Reachable location',
+  kr: '도달 가능한 위치',
+  ru : 'Доступное место',
+  ch : '无障碍位置'
+}
+
+ const s = {
+    1 : {
+      pano : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        mn1 : 'Спорт зал',
+        en1 : 'Sport arena',
+        mn2 : 'Номын сан',
+        en2 : 'Library',
+        mn3 :  'Цэцэг',
+        en3 : 'Flower',
+        mn4: 'Угтах хэсэг',
+        en4: 'Main entrance' 
+      },
+      images:{
+        a1: '1zaal.jpg',
+        a2: '1nom.jpg',
+        a3: '1tsetseg.jpg'
+      },
+      vr360: {
+        a1: new PANOLENS.ImagePanorama('assets/zaal.jpg'),
+        a2: new PANOLENS.ImagePanorama('assets/nomiinsan_1.jpg'),
+        a3: new PANOLENS.ImagePanorama('assets/tsetseg.jpg'), 
+        a4: new PANOLENS.ImagePanorama('assets/uud.jpg')
+      },
+
+      vrVid: {
+        a1: new PANOLENS.VideoPanorama('assets/1_zaal_1.mp4', {
+          autoplay: true,
+          loop: false,
+          muted: true
+        }),
+
+        a2: new PANOLENS.VideoPanorama('assets/1_nomiinsan_1.mp4', {
+          autoplay: true,
+          loop: false,
+          muted: true
+        }),
+
+        a3: new PANOLENS.VideoPanorama('assets/1_tsetseg_1.mp4', {
+          autoplay: true,
+          loop: false,
+          muted: true
+        }),
+        a4: new PANOLENS.VideoPanorama('assets/uud_1.mp4', {
+          autoplay: true,
+          loop: false,
+          muted: true
+        })
+      },
+
+      guide: {
+        a1: 'assets/1_zaal.mp4',
+        a2: 'assets/1_LIB.mp4',
+        a4: 'assets/1_main.mp4'
+      }
+    },
+
+    2 : {
+      name : { mn : '2-р давхар', en : 'Floor 2' },
+
+      // Давхар руу ороход анх харагдах панорамаgg
+      pano : new PANOLENS.ImagePanorama('assets/1davhar2.jpg'),
+
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : ''
+      },
+
+      nav : {
+        mn1 : 'Лаборатори',
+        en1 : 'Laboratory',
+        mn2 : 'Багш нарын өрөө 1',
+        en2 : 'Lecturers room 1',
+        mn3 : 'МКУТ',
+        en3 : 'DoICS',
+        mn4 : '2 давхар',
+        en4 : '2nd floor' 
+      },
+
+      images:{
+        a1: 'thumbnail_zurag/lab.jpg',
+        a2: 'thumbnail_zurag/bagsh.jpg',
+        a3: 'thumbnail_zurag/mkut.jpg'
+      },
+
+      vr360: {
+        a1: new PANOLENS.ImagePanorama('assets/lab.jpg'),
+        a2: new PANOLENS.ImagePanorama('assets/3_bagsh.jpg'),
+        a3: new PANOLENS.ImagePanorama('assets/mkut.jpg'),
+        a4: new PANOLENS.ImagePanorama('assets/2davhar.jpg') // default pano
+      },
+
+      vrVid: {
+        a1: new PANOLENS.VideoPanorama('assets/2_lab_1.mp4',   { autoplay:true, loop:false, muted:true }),
+        a2: new PANOLENS.VideoPanorama('assets/2_library_video.mp4',  { autoplay:true, loop:false, muted:true }),
+        a3: new PANOLENS.VideoPanorama('assets/2_tenhim_1.mp4',  { autoplay:true, loop:false, muted:true }),
+        a4: new PANOLENS.VideoPanorama('assets/3davhar.mp4',  { autoplay:true, loop:false, muted:true })
+
+      },// davhariin video togluulah set 
+
+      guide: {
+        a1: 'assets/1_lab.mp4',
+        a2: 'assets/1_bagsh.mp4'
+      }
+    },
+
+    3 : {   
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        mn1 : 'Багш нарын өрөө 2',
+        en1 : 'Lecturers room 2',
+        mn2 : 'Номын сан',
+        en2 : 'Library',
+        mn3 :  'Гадаад хэлний танхим',
+        en3 : 'DoFL',
+        mn4 : '3 давхар',
+        en4 : '3d floor'   
+      },
+      images:{
+        a1: 'thumbnail_zurag/305.jpg',
+        a2: 'thumbnail_zurag/3lib.jpg',
+        a3: 'thumbnail_zurag/gadaad hel.jpg'
+      },
+      vr360: {
+        a1: new PANOLENS.ImagePanorama('assets/305_bagsh.jpg'),
+        a2: new PANOLENS.ImagePanorama('assets/3_lib.jpg'),
+        a3: new PANOLENS.ImagePanorama('assets/gadaadhel.jpg'),
+        a4: new PANOLENS.ImagePanorama('assets/3davhar.jpg')
+      },
+
+      vrVid: {
+        a1: new PANOLENS.VideoPanorama('assets/2_lab_1.mp4',   { autoplay:true, loop:false, muted:true }),
+        a2: new PANOLENS.VideoPanorama('assets/2_library_video.mp4',  { autoplay:true, loop:false, muted:true }),
+        a3: new PANOLENS.VideoPanorama('assets/3_tenhim_1.mp4',  { autoplay:true, loop:false, muted:true }),
+        a4: new PANOLENS.VideoPanorama('assets/3davhar.mp4',  { autoplay:true, loop:false, muted:true })
+
+      },
+      
+      guide: {
+        a1: 'assets/1_bagsh.mp4'
+      }
+    },
+
+    4 : {
+      panolens : new PANOLENS.ImagePanorama('assets/main.jpg'),
+      sub : {
+        mn : 'Манай сургуулийн хичээлийн байранд оюутан багш ажилтанд хэрэгчтэй үйлчилгээ, сургалтын бүхий л орчинг нэг дор бүрдүүлэхийг зорьсон ба лекцийн танхим, лабораторийн ангиуд, номын сан, биеийн тамирын зал, оюутанд үйлчлэх нэгжүүд, багш нарын өрөө зэрэг бүгд байрладаг. Манай сургууль оюутан хичээллэх, бие даан суралцах, спортоор хичээллэх боломжийг хангаж өгсөн.',
+        en : '',
+        kr: '',
+        ru : '',
+        ch : ''
+      },
+      nav : {
+        mn1 : 'Баруун хэсэг',
+        en1 : 'Right side',
+        mn2 : 'Лекцийн танхим',
+        en2 : 'Lecture hall',
+        mn3 :  'Зүүн хэсэг',
+        en3 : 'Left side',
+        mn4 : '4 давхар',
+        en4 : '4th floor' 
+      },
+      images:{
+        a1: 'thumbnail_zurag/4davhar2.jpg',
+        a2: 'thumbnail_zurag/4legts.jpg',
+        a3: 'thumbnail_zurag/4davhar.jpg',
+      },
+      vr360: {
+        a1: new PANOLENS.ImagePanorama('assets/4davhar_baruun.jpg'),
+        a2: new PANOLENS.ImagePanorama('assets/4zuun_legts.jpg'),
+        a3: new PANOLENS.ImagePanorama('assets/final.jpg'),
+        a4: new PANOLENS.ImagePanorama('assets/4davhar_zuun.jpg')
+      },
+
+      vrVid:{
+        vid1: '',
+        a2: new PANOLENS.VideoPanorama('assets/4F.mp4',  { autoplay:true, loop:false, muted:true }),
+        vid3: ''
+      },
+
+      guide: {
+        a2: 'assets/1_legts.mp4'
+      }
+    }
+  }
+
+
+// show only area around current position
+
+const DOT_KEYS_BY_FLOOR = {
+  1: ["a1", "a2", "a3", "a4"],
+  2: ["a1", "a2", "a3", "a4"],
+  3: ["a1", "a2", "a3", "a4"],
+  4: ["a1", "a2", "a3", "a4"]
+};
+
+let mapSvg = null;
+let dotByKey = {};
+let mapFullVB = null;
+let currentKeyByFloor = { 1: "a4", 2: "a4", 3: "a4", 4: "a4" }; // default current
+
+
+
+function playGuide(id){
+  guideVid.src = s[scene].guide[id] || 'assets/default.mp4';
+  guideVid.currentTime = 0;
+  const p = guideVideo.play();
+  if (p) p.catch(()=>{});
+}
+
+function updateLang(lan){
+  lang = lan;  
+}
+
+function pctToSvg(vb, pct) {
+  return {
+    x: vb.x + (pct.left / 100) * vb.w,
+    y: vb.y + (pct.top  / 100) * vb.h
+  };
+}
+
+function setViewBox(svg, vb) {
+  svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+}
+
+async function loadMapSvg(floorId) {
+  const url = `${floorId}.svg`;
+  const txt = await (await fetch(url)).text();
+  mapSvgWrap.innerHTML = txt;
+
+  mapSvg = mapSvgWrap.querySelector("svg");
+  if (!mapSvg) return;
+
+  mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  mapSvg.style.width = "100%";
+  mapSvg.style.height = "100%";
+
+  // store full viewBox
+  const vb = mapSvg.viewBox.baseVal;
+  mapFullVB = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
+
+  // clear old dots
+  dotByKey = {};
+
+  // layer
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("id", "hotspotLayer");
+  mapSvg.appendChild(g);
+
+  const keys = DOT_KEYS_BY_FLOOR[floorId] || [];
+  keys.forEach((key) => {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("r", "10");
+    c.setAttribute("stroke", "#fff");
+    c.setAttribute("stroke-width", "2");
+    c.style.cursor = "pointer";
+
+    const pct = mapPositionsPct[floorId]?.[key];
+    if (!pct) return;
+
+    const p = pctToSvg(mapFullVB, pct);
+    c.setAttribute("cx", p.x);
+    c.setAttribute("cy", p.y);
+
+    c.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      // pano switch
+      viewer.setPanorama(s[floorId].vr360[key]);
+      playGuide(key);
+      place.textContent = s[floorId].nav[lang+''+key[1]];
+      // make clicked one current (blue)
+      updateMapCurrent(floorId, key);
+
+      if (document.fullscreenElement === mapEl) document.exitFullscreen();
+    });
+
+    dotByKey[key] = c;
+    g.appendChild(c);
+  });
+
+  // set initial current
+  updateMapCurrent(floorId, currentKeyByFloor[floorId] || "a4");
+}
+
+// How much of the full map the mini-map should show (0.25 = 25% of width/height)
+const MINI_CROP_SCALE = 0.35;
+
+
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function cropViewBoxAround(svg, fullVB, cx, cy, scale = MINI_CROP_SCALE) {
+  const w = fullVB.w * scale;
+  const h = fullVB.h * scale;
+
+  // center around current
+  let x = cx - w / 2;
+  let y = cy - h / 2;
+
+  // clamp so we never go outside the SVG
+  x = clamp(x, fullVB.x, fullVB.x + fullVB.w - w);
+  y = clamp(y, fullVB.y, fullVB.y + fullVB.h - h);
+
+  svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+}
+
+
+function updateMapCurrent(floorId, key) {
+  if (!mapSvg || !mapFullVB) return;
+  if (!dotByKey[key]) return;
+
+  currentKeyByFloor[floorId] = key;
+
+  // color: current blue, others grey
+  Object.entries(dotByKey).forEach(([k, dot]) => {
+    dot.setAttribute("fill", k === key ? "#1f6fff" : "#bfbfbf");
+  });
+
+  const cx = parseFloat(dotByKey[key].getAttribute("cx"));
+  const cy = parseFloat(dotByKey[key].getAttribute("cy"));
+
+  // ✅ If map is fullscreen → show full map
+  if (document.fullscreenElement === mapEl) {
+    setViewBox(mapSvg, mapFullVB);
+    return;
+  }
+
+  // ✅ Mini map (not fullscreen) → show only area around current
+  cropViewBoxAround(mapSvg, mapFullVB, cx, cy, MINI_CROP_SCALE);
+}
+
+
+document.addEventListener("fullscreenchange", () => {
+  if (!mapSvg || !mapFullVB) return;
+
+  const floorId = scene; // current floor
+  const key = currentKeyByFloor[floorId] || "a4";
+
+  // Re-apply correct view (full or cropped)
+  updateMapCurrent(floorId, key);
+});
+
+// fullscreen behavior
+
+const mapExit = document.querySelector('.map-exit');
+mapExit?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.exitFullscreen();
+});
+
+  // process polyfill – only needed if you see "process is not defined"
+  window.process = {
+    env: {
+      NODE_ENV: 'production',
+      npm_lifecycle_event: ''
+    }
+  };
+
+  // INIT PANOLENS
+  const viewer = new PANOLENS.Viewer({
+    container: document.getElementById('viewer'),
+    autoHideControlBar: true,
+    controlBar: false,
+    cameraFov: 70,
+    autoHideInfospot: false
+  });
+  // Enable inertia (smooth deceleration after drag)
+ const controls = viewer.getControl();
+
+        // Set the rotation speed (default is 1. You can adjust it to your liking)
+  controls.rotateSpeed = 0.5;  // Lower value = slower rotation
+
+  // Enable inertia (this makes the motion smoother when you stop dragging) // Enable damping (inertia)
+  controls.dampingFactor = 0.25;  // Adjust the damping factor (0.0 to 1.0)
+  controls.screenSpacePanning = true;
+
+  // add all scenes once
+  Object.values(s).forEach(floor => {
+    if (floor.pano) {
+      viewer.add(floor.pano);
+    }
+    // if (floor.vrVid) {
+    //   Object.values(floor.vrVid).forEach(p => viewer.add(p));
+    // }
+    if (floor.vr360) {
+      Object.values(floor.vr360).forEach(p => viewer.add(p));
+    }
+  });
+
+  viewer.getCamera().position.set(20, 0, -2); // camera at origin
+  viewer.getControl().update();    // example rotation
+  viewer.setPanorama(s[scene].pano || s[scene].vr360.a4);
+  updateMapCurrent(scene, currentKeyByFloor[scene] || 'a4');
+  loadMapSvg(scene);
+
+  // 🔗 DOM elements (MUST be before we use them)
+  const uiCenter   = document.querySelector('.ui-center');
+  const walkToggle = document.getElementById('walkToggle'); // <input id="walkToggle">
+  const subtitle   = document.getElementById('subtitle');
+  const btnCc      = document.getElementById('btnCc');
+  const hide     = document.getElementById('uiToggle');
+  // you can fullscreen whatever you want: body, #viewer, or a wrapper.
+  // right now parentElement of #viewer is <body>, so:
+  const fullscreenTarget = document.body;
+
+  const videoControls = document.getElementById('videoControls');
+  const btnRewind    = document.getElementById('vcRewind');
+  const btnPlayPause = document.getElementById('vcPlayPause');
+  const btnForward   = document.getElementById('vcForward');
+  const btnSkip      = document.getElementById('vcSkip');
+  const speedSel     = document.getElementById('vcSpeed');
+  const entryCTA     = document.getElementById('entryCTA');
+  const entryHotspotBtn = document.getElementById('entryHotspotBtn');
+  let floorSwitch    = document.getElementById('floorSwitch');
+  let floorToggle    = document.getElementById('floorToggle');
+
+  let currentVideoPano = null;
+  let currentSceneId   = null;  
+
+  // keep UI minimal until entrance starts
+  document.body.classList.add('pre-entry');
+  let entrySpot = null; // panorama-anchored entrance hotspot
+
+  function makeEntryIconDataURL() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+
+    ctx.beginPath();
+    ctx.arc(64, 64, 54, 0, Math.PI * 2);
+    ctx.fillStyle = '#f99523';
+    ctx.fill();
+
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(64, 64, 42, 0, Math.PI * 2);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(64, 30);
+    ctx.lineTo(90, 58);
+    ctx.lineTo(76, 58);
+    ctx.lineTo(76, 96);
+    ctx.lineTo(52, 96);
+    ctx.lineTo(52, 58);
+    ctx.lineTo(38, 58);
+    ctx.closePath();
+    ctx.fill();
+
+    return c.toDataURL('image/png');
+  }
+
+  // Default entry position — tweak via __pickEntrySpot hhhelper
+  const ENTRY_POS = { x: 4000, y: -250, z: 240 };
+
+  (function initEntryInfospot() {
+    const entryPano = (s[scene] && s[scene].pano) ? s[scene].pano : (s[1] && s[1].pano ? s[1].pano : null);
+    if (!entryPano) return;
+
+    entrySpot = new PANOLENS.Infospot(380, makeEntryIconDataURL());
+    entrySpot.position.set(ENTRY_POS.x, ENTRY_POS.y, ENTRY_POS.z);
+
+    // Hover text (Cambridge style)
+    entrySpot.addHoverText('Сургууль руу орох', 30);
+
+    // Hover scale
+    entrySpot.addEventListener('hoverenter', () => entrySpot && entrySpot.scale.set(1.15, 1.15, 1.15));
+    entrySpot.addEventListener('hoverleave', () => entrySpot && entrySpot.scale.set(1, 1, 1));
+
+    // Click -> start tour
+    entrySpot.addEventListener('click', () => startEntrance());
+
+    entryPano.add(entrySpot);
+
+    // Debug picker: set window.__pickEntrySpot = true and click to log coords
+    window.__pickEntrySpot = false;
+  entryPano.addEventListener('click', (e) => {
+    if (!window.__pickEntrySpot || !entrySpot) return;
+    if (!e || !e.intersects || !e.intersects.length) return;
+    const p = e.intersects[0].point;
+    console.log('ENTRY_SPOT_POS:', Math.round(p.x), Math.round(p.y), Math.round(p.z));
+    entrySpot.position.copy(p);
+  });
+})();
+
+  function changeFloor(floorId) {
+    if (!s[floorId]) return;
+    scene = String(floorId);
+    currentSceneId = null;
+
+    // reset cards panel
+    if (walkToggle) {
+      walkToggle.checked = false;
+      uiCenter.innerHTML = '';
+    }
+
+    // stop any playing video
+    if (currentVideoPano && currentVideoPano.getVideoElement) {
+      const v = currentVideoPano.getVideoElement();
+      if (v) {
+        v.pause();
+        v.currentTime = 0;
+      }
+      currentVideoPano = null;
+      videoControls.classList.add('hidden');
+    }
+
+    const floorData = s[floorId];
+    // Хэрэв энэ давхарт видео эхлэл (a1) байгаа бол карт дээр дарсантай адил тоглуулна
+    const basePano =
+      floorData.vr360.a4;
+    if (basePano) {
+      viewer.setPanorama(basePano);
+    }
+    
+    place.textContent = floorData.nav[lang+'4'];
+    playGuide('4');
+    if (floor) floor.textContent = floorId;
+    if (mapFloorLabel) mapFloorLabel.textContent = `${floorId} давхар`;
+    loadMapSvg(floorId);
+    updateMapCurrent(floorId, currentKeyByFloor[floorId] || 'a4');
+    renderFloorSwitch();
+    bindFloorToggle();
+    if (floorSwitch) floorSwitch.classList.add('hidden');
+  }
+
+  function renderFloorSwitch() {
+    floorSwitch = document.getElementById('floorSwitch');
+    if (!floorSwitch) return;
+    floorSwitch.innerHTML = '';
+    Object.keys(s)
+      .filter(fid => fid !== scene) // show others only headre
+      .forEach(fid => {
+        const btn = document.createElement('button');
+        btn.className = 'floor-chip';
+        const name = s[fid]?.name?.[lang];
+        btn.textContent = name || `${fid}-р давхар`;
+        btn.addEventListener('click', () => {
+          changeFloor(fid);
+        });
+        floorSwitch.appendChild(btn);
+      });
+  }
+  function bindFloorToggle() {
+    floorToggle = document.getElementById('floorToggle');
+    if (floorToggle) {
+      floorToggle.onclick = () => {
+        floorSwitch = document.getElementById('floorSwitch');
+        floorSwitch?.classList.toggle('hidden');
+      };
+    }
+  }
+
+  renderFloorSwitch();
+  bindFloorToggle();
+
+  //map changing
+
+// 1) Click on map background -> fullscreen
+  if (mapEl) {
+    mapEl.addEventListener('click', (e) => {
+      // if click was on empty map (not on a hotspot), toggle fullscreen
+
+      if (document.fullscreenElement!=mapEl) {
+        mapEl.requestFullscreen();
+      } 
+    });
+
+  }
+
+
+// 2) Click on hotspot -> jump to scene, exit fullscreen
+
+// // 3) Optional: react when fullscreen changes (Esc, etc.)
+//   document.addEventListener('fullscreenchange', () => {
+//     const isFs = !!document.fullscreenElement;
+//     if (!isFs) {
+//       // you could update UI here if needed
+//       // console.log('Map fullscreen closed');
+//     }
+//   });
+
+  
+  
+  // SVGs as strings (reuse your existing ones)
+  const iconEnter = `
+    <rect y="21" width="8.75" height="2.625" transform="rotate(-90 0 21)" fill="white"/>
+    <rect y="18.375" width="8.75" height="2.625" fill="white"/>
+    <rect width="8.75" height="2.625" fill="white"/>
+    <rect x="2.625" width="8.75" height="2.625" transform="rotate(90 2.625 0)" fill="white"/>
+    <rect x="21" width="8.75" height="2.625" transform="rotate(90 21 0)" fill="white"/>
+    <rect x="21" y="2.625" width="8.75" height="2.625" transform="rotate(180 21 2.625)" fill="white"/>
+    <rect x="21" y="21" width="8.75" height="2.625" transform="rotate(-180 21 21)" fill="white"/>
+    <rect x="18.375" y="21" width="8.75" height="2.625" transform="rotate(-90 18.375 21)" fill="white"/>
+  `;
+
+  const iconExit = `
+    <rect x="12.5518" y="8.85542" width="8.85542" height="2.53448" transform="rotate(-90 12.5518 8.85542)" fill="white"/>
+    <rect x="12.5518" y="6.19879" width="8.44828" height="2.65663" fill="white"/>
+    <rect x="12.5518" y="12.1446" width="8.44828" height="2.65663" fill="white"/>
+    <rect x="15.0864" y="12.1446" width="8.85542" height="2.53448" transform="rotate(90 15.0864 12.1446)" fill="white"/>
+    <rect x="8.44824" y="12.1446" width="8.85542" height="2.53448" transform="rotate(90 8.44824 12.1446)" fill="white"/>
+    <rect x="8.44824" y="14.8012" width="8.44828" height="2.65663" transform="rotate(180 8.44824 14.8012)" fill="white"/>
+    <rect x="8.44824" y="8.85543" width="8.44828" height="2.65663" transform="rotate(-180 8.44824 8.85543)" fill="white"/>
+    <rect x="5.91357" y="8.85543" width="8.85542" height="2.53448" transform="rotate(-90 5.91357 8.85543)" fill="white"/>
+  `;
+
+//oorcholol neg u
+  
+  function updateFsUI(isFullscreen) {
+    // change icon
+    const svg = hide.parentElement.querySelector('svg');
+    if (svg) {
+      svg.innerHTML = isFullscreen ? iconExit : iconEnter;
+    }
+  }
+
+// when checkbox changes (click on label etc.)
+  hide.addEventListener('change', () => {
+    if (hide.checked) {
+      fullscreenTarget.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+// keep in sync with actual fullscreen state (Esc, F11, etc.)
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    // sync checkbox and UI
+    hide.checked = isFs;
+    updateFsUI(isFs);
+  });
+
+function setScene(id) {
+  currentSceneId = id;              // Save the current scene for later use
+
+  const floorId = id[0];
+  const itemId  = id[1];
+  const key     = 'a' + itemId;  // Convert '1', '2', '3' to 'a1', 'a2', 'a3'
+
+  const floor = s[floorId];
+  if (!floor || !floor.vrVid) return;
+
+  scene = floorId;
+  if (floor) floor.textContent = floorId;
+  if (mapFloorLabel) mapFloorLabel.textContent = `${floorId} давхар`;
+  renderFloorSwitch();
+  loadMapSvg(floorId);
+  updateMapCurrent(floorId, key);
+  currentKeyByFloor[floorId] = key;
+
+  const pano = floor.vrVid[key];
+  if (!pano) return;
+
+  // If there was already a video playing, stop it
+  if (currentVideoPano && currentVideoPano instanceof PANOLENS.VideoPanorama) {
+    const videoElement = currentVideoPano.getVideoElement();
+    if (videoElement) {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+    }
+  }
+
+  // Set the new panorama (this includes video panoramas)
+  viewer.setPanorama(pano);
+  // Manually play the video if it's a video panorama (if autoplay was false)
+  if (pano instanceof PANOLENS.VideoPanorama) {
+    currentVideoPano = pano;
+    viewer.add(pano);
+    const videoElement = pano.getVideoElement();
+    
+    if (videoElement) {
+      // Mute the video by default to ensure autoplay works
+      videoElement.muted = true;
+      videoElement.autoplay = true;
+      // Play the video
+      videoElement.play()
+      .catch((error) => {
+        console.warn('Autoplay failed, please interact with the page', error);
+      });
+      uiBottom.style.display = 'none';
+      cc.style.display = 'none';
+      subt.style.display = 'none';
+      place.textContent = floor.nav[lang+''+itemId];
+
+      // Set the desired playback rate (if you have a speed control)
+      videoElement.playbackRate = parseFloat(speedSel.value || '1');
+
+      // Handle video end (move to next panorama or reset)
+      videoElement.onended = () => {
+        uiBottom.style.display = 'flex';
+        cc.style.display = 'block';
+        subt.style.display = 'block';
+        const photo = floor.vr360['a' + itemId];
+        if (photo) {
+          viewer.setPanorama(photo);
+          playGuide(key); // Restart the guide video if needed
+        }
+        currentVideoPano = null;
+        videoControls.classList.add('hidden');
+      };
+    }
+
+    // Show video controls if needed
+    videoControls.classList.remove('hidden');
+  } else {
+    currentVideoPano = null;
+    videoControls.classList.add('hidden');
+  }
+
+  // Update the UI for active cards (mark the selected scene)
+  document.querySelectorAll('.scene-card')
+    .forEach(c => c.classList.remove('scene-card--active'));
+
+  const active = document.querySelector(`.scene-card[data-scene="${id}"]`);
+  if (active) active.classList.add('scene-card--active');
+}
+
+  function startEntrance() {
+    document.body.classList.remove('pre-entry');
+    if (entryCTA) {
+      entryCTA.style.display = 'none';
+    }
+    const hs = document.getElementById('entryHotspot');
+    if (hs) {
+      hs.style.display = 'none';
+    }
+    if (entrySpot) entrySpot.visible = false;
+    setScene('14'); // first scene
+  }
+
+  if (entryHotspotBtn) {
+    entryHotspotBtn.addEventListener('click', startEntrance);
+  }
+
+
+
+  const el = document.querySelectorAll('cc');
+  el.forEach(e => {
+    e.addEventListener('click', () => {
+      lang = e.id;
+      subtitle.textContent = s[scene].sub[lang];
+    });
+  });
+
+
+  function getCurrentVideoEl() {
+    return currentVideoPano ? currentVideoPano.getVideoElement() : null;
+  }
+
+  // хурд өөрчлөх
+  speedSel.addEventListener('change', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+    v.playbackRate = parseFloat(speedSel.value || '1');
+  });
+
+  // rewind 10s
+  btnRewind.addEventListener('click', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+    v.currentTime = Math.max(0, v.currentTime - 10);
+  });
+
+  // forward 10s
+  btnForward.addEventListener('click', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+    v.currentTime = Math.min(v.duration || v.currentTime + 10, v.currentTime + 10);
+  });
+
+  // play / pause
+  btnPlayPause.addEventListener('click', () => {
+    const v = getCurrentVideoEl();
+    if (!v) return;
+
+    if (v.paused) {
+      v.play();
+      btnPlayPause.textContent = 'Pause';
+    } else {
+      v.pause();
+      btnPlayPause.textContent = 'Play';
+    }
+  });
+
+  // skip → зураг руу шууд шилжих
+  btnSkip.addEventListener('click', () => {
+    if (!currentSceneId) return;
+
+    const floorId = currentSceneId[0];
+    const itemId  = currentSceneId[1];
+    const floor = s[floorId];
+    if (!floor || !floor.vr360) return;
+
+    const photo = floor.vr360['a' + itemId];
+    if (!photo) return;
+    uiBottom.style.display = 'flex';
+    cc.style.display = 'block';
+    subt.style.display = 'block';
+    playGuide('a'+itemId);
+
+    viewer.setPanorama(photo);
+    currentVideoPano = null;
+    videoControls.classList.add('hidden');
+  });
+
+
+
+
+  // 🃏 click on any card inside .ui-center (works after innerHTML changes)
+  uiCenter.addEventListener('click', (e) => {
+    const card = e.target.closest('.scene-card');
+    if (!card) return;
+
+    const id = card.dataset.scene;
+
+    // 1) switch to that scene (video plays if it's video)
+    setScene(id);
+
+    // 2) auto-hide the cards panel
+    walkToggle.checked = false;   // uncheck the toggle
+    uiCenter.innerHTML = '';      // remove the cards from center
+  });
+
+  // ✅ checkbox toggle for "Явах"
+  walkToggle.addEventListener('change', () => {
+    if (walkToggle.checked) {
+      // CHECKED → show cards + start library video
+      uiCenter.innerHTML = `
+        <div class="card-row" id="sceneCards">
+          <article class="scene-card" data-scene="${scene}1">
+            <img src="assets/${s[scene].images.a1}" alt="Спорт зал" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lang+'1']}</div>
+          </article>
+          
+          <article class="scene-card" data-scene="${scene}2">
+            <img src="assets/${s[scene].images.a2}" alt="Лаборатори" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lang+'2']}</div>
+          </article>
+
+          <article class="scene-card" data-scene="${scene}3">
+            <img src="assets/${s[scene].images.a3}" alt="Лекц" class="scene-card__img" />
+            <div class="scene-card__label">${s[scene].nav[lang+'3']}</div>
+          </article>
+        </div>
+        <div class="floor-switch-panel">
+          <button class="chip chip--blue" id="floorToggle">Давхар сонгох</button>
+          <div class="floor-switch hidden" id="floorSwitch"></div>
+        </div>
+      `;
+      renderFloorSwitch();
+      bindFloorToggle();
+      floorSwitch?.classList.add('hidden');
+
+    } else {
+      // UNCHECKED → hide cards, go back to main
+      uiCenter.innerHTML = '';
+      viewer.setPanorama(s[scene].vr360.a4);
+      updateMapCurrent(scene, currentKeyByFloor[scene] || 'a4');
+      loadMapSvg(scene);
+
+      document.querySelectorAll('.scene-card')
+        .forEach(c => c.classList.remove('scene-card--active'));
+    }
+  });
+
+  // CC toggle (just hides/shows subtitle)
+  btnCc.addEventListener('click', () => {
+    const visible = subtitle.style.display !== 'none';
+    subtitle.style.display = visible ? 'none' : 'block';
+  });
+
+  // 🎬 when library VIDEO finishes → show library PHOTO
+  // function handleLibraryEnded(id) {
+  //   console.log('Library video ended, switching to photo');
+  //   viewer.setPanorama(s[scene].vr360['a'+id]);
+  // }
+
+  // try to get the video element now
+  // let libVideoEl = scenes.library.getVideoElement();
+
+  // if (libVideoEl) {
+  //   // video element already exists
+  //   libVideoEl.addEventListener('ended', handleLibraryEnded);
+  // } else {
+  //   // wait until the panorama is loaded, then get the video element
+  //   scenes.library.addEventListener('load', () => {
+  //     libVideoEl = scenes.library.getVideoElement();
+  //     if (!libVideoEl) return;
+  //     libVideoEl.addEventListener('ended', handleLibraryEnded);
+  //   });
+  // }
+
+    // EXIT -> jump to current floor's a4 photo (skip video)
+  if (exitBtn) {
+    exitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      const currentFloor = scene;
+      const floorData = s[currentFloor];
+
+      if (floor) floor.textContent = currentFloor;
+      if (mapFloorLabel) mapFloorLabel.textContent = `${currentFloor} давхар`;
+
+      const photo = floorData?.vr360?.a4 || (floorData?.vr360 && Object.values(floorData.vr360)[0]);
+      if (photo) {
+        viewer.setPanorama(photo);
+        updateMapCurrent(currentFloor, 'a4');
+        currentKeyByFloor[currentFloor] = 'a4';
+      }
+
+      const v = getCurrentVideoEl();
+      if (v) {
+        v.pause();
+        v.currentTime = 0;
+      }
+      currentVideoPano = null;
+      videoControls.classList.add('hidden');
+      uiBottom.style.display = 'flex';
+      cc.style.display = 'block';
+      subt.style.display = 'block';
+    });
+  }
+
+
+</script>
+</body>
+</html>
